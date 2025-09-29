@@ -6,7 +6,13 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["piano", "moving", "quote", "resend", "email"],
+  "keywords": [
+    "piano",
+    "moving",
+    "quote",
+    "resend",
+    "email"
+  ],
   "author": "The North London Piano",
   "license": "MIT",
   "dependencies": {
@@ -14,5 +20,14 @@
   },
   "engines": {
     "node": ">=18.x"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dariuszgoral01-cloud/piano-move-team.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/dariuszgoral01-cloud/piano-move-team/issues"
+  },
+  "homepage": "https://github.com/dariuszgoral01-cloud/piano-move-team#readme"
 }
