@@ -1,15 +1,18 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    }
-  ]
+  "name": "piano-move-team",
+  "version": "1.0.0",
+  "description": "Piano moving quote API with Resend email integration",
+  "main": "api/quote.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["piano", "moving", "quote", "resend", "email"],
+  "author": "The North London Piano",
+  "license": "MIT",
+  "dependencies": {
+    "resend": "^3.5.0"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
 }
