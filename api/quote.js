@@ -106,7 +106,7 @@ module.exports = async (req, res) => {
 };
 
 // ==========================================
-// EMAIL FOR YOU (BUSINESS)
+// EMAIL FOR YOU (BUSINESS) - MOBILE OPTIMIZED
 // ==========================================
 function generateEmailForYou(data, calLink, waLink, attachCount) {
   return `
@@ -115,6 +115,15 @@ function generateEmailForYou(data, calLink, waLink, attachCount) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="x-apple-disable-message-reformatting">
+  <style>
+    @media only screen and (max-width: 600px) {
+      .container { width: 100% !important; }
+      .button { padding: 16px 28px !important; font-size: 16px !important; }
+      h1 { font-size: 22px !important; }
+      .section-title { font-size: 16px !important; }
+    }
+  </style>
 </head>
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#ffffff">
   
@@ -122,137 +131,138 @@ function generateEmailForYou(data, calLink, waLink, attachCount) {
   <tr>
     <td align="center">
       
-      <!-- Main Container -->
-      <table width="650" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #000000">
+      <table class="container" width="650" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #000000;max-width:650px">
         
         <!-- Header -->
         <tr>
-          <td style="padding:30px 40px;border-bottom:3px solid #000000">
+          <td style="padding:30px 30px;border-bottom:3px solid #000000">
             <h1 style="margin:0;color:#000000;font-size:24px;font-weight:700;letter-spacing:-0.5px">New Piano Moving Quote Request</h1>
-            <p style="margin:8px 0 0 0;color:#666666;font-size:13px">${new Date().toLocaleString('en-GB', {timeZone:'Europe/London',dateStyle:'full',timeStyle:'short'})}</p>
+            <p style="margin:10px 0 0 0;color:#666666;font-size:15px">${new Date().toLocaleString('en-GB', {timeZone:'Europe/London',dateStyle:'full',timeStyle:'short'})}</p>
           </td>
         </tr>
 
         ${attachCount > 0 ? `
-        <!-- Attachments Alert -->
         <tr>
-          <td style="padding:20px 40px;background:#f9f9f9;border-bottom:1px solid #e0e0e0">
-            <p style="margin:0;color:#000000;font-size:14px;font-weight:600">📎 ${attachCount} Attachment${attachCount > 1 ? 's' : ''} Included</p>
-            <p style="margin:5px 0 0 0;color:#666666;font-size:13px">Customer uploaded ${attachCount} file${attachCount > 1 ? 's' : ''} - check attachments below</p>
+          <td style="padding:20px 30px;background:#f9f9f9;border-bottom:1px solid #e0e0e0">
+            <p style="margin:0;color:#000000;font-size:16px;font-weight:600">📎 ${attachCount} Attachment${attachCount > 1 ? 's' : ''} Included</p>
+            <p style="margin:8px 0 0 0;color:#666666;font-size:15px">Customer uploaded ${attachCount} file${attachCount > 1 ? 's' : ''}</p>
           </td>
         </tr>
         ` : ''}
 
         <!-- Action Buttons -->
         <tr>
-          <td style="padding:30px 40px;border-bottom:1px solid #e0e0e0">
-            <p style="margin:0 0 15px 0;color:#000000;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Quick Actions</p>
+          <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
+            <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Quick Actions</p>
             <table cellpadding="0" cellspacing="0">
               <tr>
-                <td style="padding:0 8px 0 0">
-                  <a href="${calLink}" target="_blank" style="display:inline-block;background:#000000;color:#ffffff;padding:12px 24px;text-decoration:none;font-weight:600;font-size:13px;border:2px solid #000000">Add to Calendar</a>
+                <td style="padding:0 10px 12px 0">
+                  <a href="${calLink}" target="_blank" style="display:inline-block;background:#000000;color:#ffffff;padding:16px 28px;text-decoration:none;font-weight:600;font-size:15px;border:2px solid #000000">Add to Calendar</a>
                 </td>
-                <td style="padding:0 8px">
-                  <a href="tel:${data.phone}" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:10px 24px;text-decoration:none;font-weight:600;font-size:13px">Call Now</a>
+              </tr>
+              <tr>
+                <td style="padding:0 10px 12px 0">
+                  <a href="tel:${data.phone}" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:14px 28px;text-decoration:none;font-weight:600;font-size:15px">Call Now</a>
                 </td>
-                <td style="padding:0 0 0 8px">
-                  <a href="${waLink}" target="_blank" style="display:inline-block;background:#25D366;color:#ffffff;padding:12px 24px;text-decoration:none;font-weight:600;font-size:13px;border:2px solid #25D366">WhatsApp</a>
+              </tr>
+              <tr>
+                <td style="padding:0">
+                  <a href="${waLink}" target="_blank" style="display:inline-block;background:#25D366;color:#ffffff;padding:16px 28px;text-decoration:none;font-weight:600;font-size:15px;border:2px solid #25D366">WhatsApp</a>
                 </td>
               </tr>
             </table>
           </td>
         </tr>
 
-        <!-- Customer Information -->
+        <!-- Customer Info -->
         <tr>
-          <td style="padding:30px 40px;border-bottom:1px solid #e0e0e0">
-            <p style="margin:0 0 15px 0;color:#000000;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Customer Information</p>
-            <table width="100%" cellpadding="10" cellspacing="0" style="border:1px solid #e0e0e0">
+          <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
+            <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Customer Information</p>
+            <table width="100%" cellpadding="14" cellspacing="0" style="border:1px solid #e0e0e0">
               <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="font-weight:600;width:30%;color:#666666;font-size:13px;background:#f9f9f9">Name</td>
-                <td style="color:#000000;font-size:14px;font-weight:600">${data.fullname}</td>
+                <td style="font-weight:600;width:35%;color:#666666;font-size:15px;background:#f9f9f9">Name</td>
+                <td style="color:#000000;font-size:16px;font-weight:600">${data.fullname}</td>
               </tr>
               <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="font-weight:600;color:#666666;font-size:13px;background:#f9f9f9">Email</td>
-                <td><a href="mailto:${data.email}" style="color:#000000;text-decoration:none;font-size:14px">${data.email}</a></td>
+                <td style="font-weight:600;color:#666666;font-size:15px;background:#f9f9f9">Email</td>
+                <td><a href="mailto:${data.email}" style="color:#000000;text-decoration:none;font-size:16px">${data.email}</a></td>
               </tr>
               <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="font-weight:600;color:#666666;font-size:13px;background:#f9f9f9">Phone</td>
-                <td><a href="tel:${data.phone}" style="color:#000000;text-decoration:none;font-size:14px;font-weight:600">${data.phone}</a></td>
+                <td style="font-weight:600;color:#666666;font-size:15px;background:#f9f9f9">Phone</td>
+                <td><a href="tel:${data.phone}" style="color:#000000;text-decoration:none;font-size:17px;font-weight:700">${data.phone}</a></td>
               </tr>
               <tr>
-                <td style="font-weight:600;color:#666666;font-size:13px;background:#f9f9f9">Piano Type</td>
-                <td style="color:#000000;font-size:14px">${data.pianotype || '<span style="color:#999999">Not specified</span>'}</td>
+                <td style="font-weight:600;color:#666666;font-size:15px;background:#f9f9f9">Piano</td>
+                <td style="color:#000000;font-size:16px">${data.pianotype || '<span style="color:#999999">Not specified</span>'}</td>
               </tr>
             </table>
           </td>
         </tr>
 
-        <!-- Pickup Details -->
+        <!-- Pickup -->
         <tr>
-          <td style="padding:30px 40px;border-bottom:1px solid #e0e0e0">
-            <p style="margin:0 0 15px 0;color:#000000;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">📍 Pickup Location</p>
-            <table width="100%" cellpadding="10" cellspacing="0" style="border:1px solid #e0e0e0">
+          <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
+            <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">📍 Pickup Location</p>
+            <table width="100%" cellpadding="14" cellspacing="0" style="border:1px solid #e0e0e0">
               <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="font-weight:600;width:30%;color:#666666;font-size:13px;background:#f9f9f9">Address</td>
-                <td style="color:#000000;font-size:14px;font-weight:600">${data.pickup_postcode}</td>
+                <td style="font-weight:600;width:35%;color:#666666;font-size:15px;background:#f9f9f9">Address</td>
+                <td style="color:#000000;font-size:16px;font-weight:600">${data.pickup_postcode}</td>
               </tr>
               <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="font-weight:600;color:#666666;font-size:13px;background:#f9f9f9">Steps</td>
-                <td style="color:#000000;font-size:16px;font-weight:700">${data.pickup_steps}</td>
+                <td style="font-weight:600;color:#666666;font-size:15px;background:#f9f9f9">Steps</td>
+                <td style="color:#000000;font-size:20px;font-weight:700">${data.pickup_steps}</td>
               </tr>
               <tr>
-                <td style="font-weight:600;color:#666666;font-size:13px;background:#f9f9f9">Google Maps</td>
-                <td><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.pickup_postcode)}" target="_blank" style="color:#000000;text-decoration:underline;font-size:13px;font-weight:600">Open in Maps →</a></td>
+                <td style="font-weight:600;color:#666666;font-size:15px;background:#f9f9f9">Maps</td>
+                <td><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.pickup_postcode)}" target="_blank" style="color:#000000;text-decoration:underline;font-size:15px;font-weight:600">Open in Maps →</a></td>
               </tr>
             </table>
           </td>
         </tr>
 
-        <!-- Delivery Details -->
+        <!-- Delivery -->
         <tr>
-          <td style="padding:30px 40px;border-bottom:1px solid #e0e0e0">
-            <p style="margin:0 0 15px 0;color:#000000;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">🚚 Delivery Location</p>
-            <table width="100%" cellpadding="10" cellspacing="0" style="border:1px solid #e0e0e0">
+          <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
+            <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">🚚 Delivery Location</p>
+            <table width="100%" cellpadding="14" cellspacing="0" style="border:1px solid #e0e0e0">
               <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="font-weight:600;width:30%;color:#666666;font-size:13px;background:#f9f9f9">Address</td>
-                <td style="color:#000000;font-size:14px;font-weight:600">${data.delivery_postcode}</td>
+                <td style="font-weight:600;width:35%;color:#666666;font-size:15px;background:#f9f9f9">Address</td>
+                <td style="color:#000000;font-size:16px;font-weight:600">${data.delivery_postcode}</td>
               </tr>
               <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="font-weight:600;color:#666666;font-size:13px;background:#f9f9f9">Steps</td>
-                <td style="color:#000000;font-size:16px;font-weight:700">${data.delivery_steps}</td>
+                <td style="font-weight:600;color:#666666;font-size:15px;background:#f9f9f9">Steps</td>
+                <td style="color:#000000;font-size:20px;font-weight:700">${data.delivery_steps}</td>
               </tr>
               <tr>
-                <td style="font-weight:600;color:#666666;font-size:13px;background:#f9f9f9">Google Maps</td>
-                <td><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.delivery_postcode)}" target="_blank" style="color:#000000;text-decoration:underline;font-size:13px;font-weight:600">Open in Maps →</a></td>
+                <td style="font-weight:600;color:#666666;font-size:15px;background:#f9f9f9">Maps</td>
+                <td><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.delivery_postcode)}" target="_blank" style="color:#000000;text-decoration:underline;font-size:15px;font-weight:600">Open in Maps →</a></td>
               </tr>
             </table>
           </td>
         </tr>
 
         ${data.specialrequirements ? `
-        <!-- Special Requirements -->
         <tr>
-          <td style="padding:30px 40px;border-bottom:1px solid #e0e0e0">
-            <p style="margin:0 0 15px 0;color:#000000;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">📝 Special Requirements</p>
-            <div style="border:1px solid #e0e0e0;padding:15px;background:#f9f9f9">
-              <p style="margin:0;color:#333333;font-size:14px;line-height:1.7;white-space:pre-wrap">${data.specialrequirements}</p>
+          <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
+            <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">📝 Special Requirements</p>
+            <div style="border:1px solid #e0e0e0;padding:18px;background:#f9f9f9">
+              <p style="margin:0;color:#333333;font-size:16px;line-height:1.7;white-space:pre-wrap">${data.specialrequirements}</p>
             </div>
           </td>
         </tr>
         ` : ''}
 
-        <!-- Route Button -->
+        <!-- Route -->
         <tr>
-          <td style="padding:30px 40px;text-align:center;border-bottom:1px solid #e0e0e0">
-            <a href="https://www.google.com/maps/dir/${encodeURIComponent(data.pickup_postcode)}/${encodeURIComponent(data.delivery_postcode)}" target="_blank" style="display:inline-block;background:#000000;color:#ffffff;padding:14px 36px;text-decoration:none;font-weight:600;font-size:13px;border:2px solid #000000">View Route & Calculate Distance →</a>
+          <td style="padding:30px 30px;text-align:center;border-bottom:1px solid #e0e0e0">
+            <a href="https://www.google.com/maps/dir/${encodeURIComponent(data.pickup_postcode)}/${encodeURIComponent(data.delivery_postcode)}" target="_blank" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 40px;text-decoration:none;font-weight:600;font-size:16px;border:2px solid #000000">View Route & Distance →</a>
           </td>
         </tr>
 
         <!-- Footer -->
         <tr>
-          <td style="padding:20px 40px;background:#f9f9f9;text-align:center">
-            <p style="margin:0;color:#999999;font-size:11px;text-transform:uppercase;letter-spacing:1px">Piano Move Team • Quote Management System</p>
+          <td style="padding:25px 30px;background:#f9f9f9;text-align:center">
+            <p style="margin:0;color:#999999;font-size:13px;text-transform:uppercase;letter-spacing:1px">Piano Move Team • Quote Management</p>
           </td>
         </tr>
 
@@ -268,7 +278,7 @@ function generateEmailForYou(data, calLink, waLink, attachCount) {
 }
 
 // ==========================================
-// EMAIL FOR CUSTOMER (AUTO-RESPONSE)
+// EMAIL FOR CUSTOMER - MOBILE OPTIMIZED
 // ==========================================
 function generateEmailForCustomer(data) {
   return `
@@ -277,6 +287,16 @@ function generateEmailForCustomer(data) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="x-apple-disable-message-reformatting">
+  <style>
+    @media only screen and (max-width: 600px) {
+      .container { width: 100% !important; }
+      .button { padding: 18px 32px !important; font-size: 17px !important; display: block !important; margin-bottom: 12px !important; }
+      h1 { font-size: 26px !important; }
+      .section-title { font-size: 18px !important; }
+      .text { font-size: 17px !important; line-height: 1.6 !important; }
+    }
+  </style>
 </head>
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#ffffff">
   
@@ -284,37 +304,36 @@ function generateEmailForCustomer(data) {
   <tr>
     <td align="center">
       
-      <!-- Main Container -->
-      <table width="650" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #000000">
+      <table class="container" width="650" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #000000;max-width:650px">
         
         <!-- Header -->
         <tr>
-          <td style="padding:40px 40px 30px 40px">
-            <h1 style="margin:0 0 15px 0;color:#000000;font-size:28px;font-weight:700;letter-spacing:-0.5px">Hi ${data.fullname},</h1>
-            <p style="margin:0 0 10px 0;color:#333333;font-size:16px;line-height:1.6">Thank you for requesting a piano moving quote.</p>
-            <p style="margin:0;color:#333333;font-size:16px;line-height:1.6">We've received your details and <strong>will contact you shortly</strong> with a personalized quote tailored to your needs.</p>
+          <td style="padding:40px 30px 30px 30px">
+            <h1 style="margin:0 0 18px 0;color:#000000;font-size:30px;font-weight:700;letter-spacing:-0.5px">Hi ${data.fullname},</h1>
+            <p class="text" style="margin:0 0 12px 0;color:#333333;font-size:18px;line-height:1.6">Thank you for requesting a piano moving quote.</p>
+            <p class="text" style="margin:0;color:#333333;font-size:18px;line-height:1.6">We've received your details and <strong>will contact you shortly</strong> with a personalized quote.</p>
           </td>
         </tr>
 
-        <!-- Summary Box -->
+        <!-- Summary -->
         <tr>
-          <td style="padding:0 40px 30px 40px">
-            <table width="100%" cellpadding="20" cellspacing="0" style="border:2px solid #000000">
+          <td style="padding:0 30px 30px 30px">
+            <table width="100%" cellpadding="22" cellspacing="0" style="border:2px solid #000000">
               <tr>
                 <td>
-                  <p style="margin:0 0 15px 0;color:#000000;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Your Submission Details</p>
-                  <table width="100%" cellpadding="8" cellspacing="0">
+                  <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Your Submission</p>
+                  <table width="100%" cellpadding="10" cellspacing="0">
                     <tr style="border-bottom:1px solid #e0e0e0">
-                      <td style="color:#666666;font-size:14px;width:35%;padding:8px 0">Piano Type</td>
-                      <td style="color:#000000;font-size:14px;font-weight:600;padding:8px 0">${data.pianotype || '<span style="color:#999999">Not specified</span>'}</td>
+                      <td style="color:#666666;font-size:16px;width:35%;padding:10px 0">Piano Type</td>
+                      <td style="color:#000000;font-size:17px;font-weight:600;padding:10px 0">${data.pianotype || '<span style="color:#999999">Not specified</span>'}</td>
                     </tr>
                     <tr style="border-bottom:1px solid #e0e0e0">
-                      <td style="color:#666666;font-size:14px;padding:8px 0">Pickup</td>
-                      <td style="color:#000000;font-size:14px;padding:8px 0">${data.pickup_postcode} <span style="color:#666666;font-size:13px">(${data.pickup_steps} steps)</span></td>
+                      <td style="color:#666666;font-size:16px;padding:10px 0">Pickup</td>
+                      <td style="color:#000000;font-size:16px;padding:10px 0">${data.pickup_postcode} <span style="color:#666666;font-size:15px">(${data.pickup_steps} steps)</span></td>
                     </tr>
                     <tr>
-                      <td style="color:#666666;font-size:14px;padding:8px 0">Delivery</td>
-                      <td style="color:#000000;font-size:14px;padding:8px 0">${data.delivery_postcode} <span style="color:#666666;font-size:13px">(${data.delivery_steps} steps)</span></td>
+                      <td style="color:#666666;font-size:16px;padding:10px 0">Delivery</td>
+                      <td style="color:#000000;font-size:16px;padding:10px 0">${data.delivery_postcode} <span style="color:#666666;font-size:15px">(${data.delivery_steps} steps)</span></td>
                     </tr>
                   </table>
                 </td>
@@ -325,56 +344,60 @@ function generateEmailForCustomer(data) {
 
         <!-- Divider -->
         <tr>
-          <td style="padding:0 40px">
+          <td style="padding:0 30px">
             <div style="border-top:1px solid #e0e0e0"></div>
           </td>
         </tr>
 
-        <!-- Contact Section -->
+        <!-- Contact -->
         <tr>
-          <td style="padding:30px 40px">
-            <p style="margin:0 0 20px 0;color:#000000;font-size:18px;font-weight:600;letter-spacing:-0.5px">Need to Reach Us?</p>
-            <p style="margin:0 0 20px 0;color:#666666;font-size:14px;line-height:1.6">Have questions or want to discuss your piano move? We're here to help!</p>
+          <td style="padding:30px 30px">
+            <p class="section-title" style="margin:0 0 20px 0;color:#000000;font-size:20px;font-weight:600;letter-spacing:-0.5px">Need to Reach Us?</p>
+            <p class="text" style="margin:0 0 24px 0;color:#666666;font-size:17px;line-height:1.6">Have questions or want to discuss your piano move? We're here to help!</p>
             
-            <table cellpadding="0" cellspacing="0">
+            <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
-                <td style="padding:0 8px 10px 0">
-                  <a href="mailto:thenorthpiano@googlemail.com?subject=Piano%20Quote%20-%20${encodeURIComponent(data.fullname)}" style="display:inline-block;background:#000000;color:#ffffff;padding:12px 24px;text-decoration:none;font-weight:600;font-size:13px;border:2px solid #000000">Email Us</a>
+                <td style="padding-bottom:14px">
+                  <a href="mailto:thenorthpiano@googlemail.com?subject=Piano%20Quote%20-%20${encodeURIComponent(data.fullname)}" class="button" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 32px;text-decoration:none;font-weight:600;font-size:16px;border:2px solid #000000">Email Us</a>
                 </td>
-                <td style="padding:0 8px 10px 0">
-                  <a href="https://wa.me/447711872434?text=Hi,%20I%20requested%20a%20quote%20for%20moving%20my%20piano" target="_blank" style="display:inline-block;background:#25D366;color:#ffffff;padding:12px 24px;text-decoration:none;font-weight:600;font-size:13px;border:2px solid #25D366">WhatsApp</a>
+              </tr>
+              <tr>
+                <td style="padding-bottom:14px">
+                  <a href="https://wa.me/447711872434?text=Hi,%20I%20requested%20a%20quote%20for%20moving%20my%20piano" target="_blank" class="button" style="display:inline-block;background:#25D366;color:#ffffff;padding:18px 32px;text-decoration:none;font-weight:600;font-size:16px;border:2px solid #25D366">WhatsApp</a>
                 </td>
-                <td style="padding:0 0 10px 0">
-                  <a href="tel:08000842902" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:10px 24px;text-decoration:none;font-weight:600;font-size:13px">Call Free</a>
+              </tr>
+              <tr>
+                <td>
+                  <a href="tel:02034419463" class="button" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:16px 32px;text-decoration:none;font-weight:600;font-size:16px">Call Us</a>
                 </td>
               </tr>
             </table>
           </td>
         </tr>
 
-        <!-- Contact Details Table -->
+        <!-- Contact Details -->
         <tr>
-          <td style="padding:0 40px 30px 40px">
-            <table width="100%" cellpadding="12" cellspacing="0" style="border:1px solid #e0e0e0">
+          <td style="padding:0 30px 30px 30px">
+            <table width="100%" cellpadding="16" cellspacing="0" style="border:1px solid #e0e0e0">
               <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="color:#666666;font-size:13px;width:25%;background:#f9f9f9;font-weight:600">Email</td>
-                <td style="padding:12px 15px"><a href="mailto:thenorthpiano@googlemail.com" style="color:#000000;text-decoration:none;font-size:14px">thenorthpiano@googlemail.com</a></td>
+                <td style="color:#666666;font-size:15px;width:30%;background:#f9f9f9;font-weight:600">Email</td>
+                <td style="padding:16px 18px"><a href="mailto:thenorthpiano@googlemail.com" style="color:#000000;text-decoration:none;font-size:16px">thenorthpiano@googlemail.com</a></td>
               </tr>
               <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="color:#666666;font-size:13px;background:#f9f9f9;font-weight:600">Mobile</td>
-                <td style="padding:12px 15px"><a href="tel:07711872434" style="color:#000000;text-decoration:none;font-size:14px;font-weight:600">07711 872 434</a></td>
+                <td style="color:#666666;font-size:15px;background:#f9f9f9;font-weight:600">Mobile</td>
+                <td style="padding:16px 18px"><a href="tel:07711872434" style="color:#000000;text-decoration:none;font-size:17px;font-weight:700">07711 872 434</a></td>
               </tr>
               <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="color:#666666;font-size:13px;background:#f9f9f9;font-weight:600">Landline</td>
-                <td style="padding:12px 15px"><a href="tel:02034419463" style="color:#000000;text-decoration:none;font-size:14px">020 3441 9463</a></td>
+                <td style="color:#666666;font-size:15px;background:#f9f9f9;font-weight:600">Landline</td>
+                <td style="padding:16px 18px"><a href="tel:02034419463" style="color:#000000;text-decoration:none;font-size:17px;font-weight:700">020 3441 9463</a></td>
               </tr>
               <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="color:#666666;font-size:13px;background:#f9f9f9;font-weight:600">Freephone</td>
-                <td style="padding:12px 15px"><a href="tel:08000842902" style="color:#000000;text-decoration:none;font-size:14px">0800 084 2902</a></td>
+                <td style="color:#666666;font-size:15px;background:#f9f9f9;font-weight:600">Freephone</td>
+                <td style="padding:16px 18px"><a href="tel:08000842902" style="color:#000000;text-decoration:none;font-size:17px;font-weight:700">0800 084 2902</a></td>
               </tr>
               <tr>
-                <td style="color:#666666;font-size:13px;background:#f9f9f9;font-weight:600">Address</td>
-                <td style="padding:12px 15px;color:#000000;font-size:14px">176 Millicent Grove<br/>London N13 6HS</td>
+                <td style="color:#666666;font-size:15px;background:#f9f9f9;font-weight:600">Address</td>
+                <td style="padding:16px 18px;color:#000000;font-size:16px">176 Millicent Grove<br/>London N13 6HS</td>
               </tr>
             </table>
           </td>
@@ -382,51 +405,68 @@ function generateEmailForCustomer(data) {
 
         <!-- Divider -->
         <tr>
-          <td style="padding:0 40px">
+          <td style="padding:0 30px">
+            <div style="border-top:1px solid #e0e0e0"></div>
+          </td>
+        </tr>
+
+        <!-- Save Contact vCard -->
+        <tr>
+          <td style="padding:30px 30px;text-align:center">
+            <p class="section-title" style="margin:0 0 18px 0;color:#000000;font-size:20px;font-weight:600;letter-spacing:-0.5px">📱 Save Our Contact</p>
+            <p class="text" style="margin:0 0 24px 0;color:#666666;font-size:17px;line-height:1.6">Add us to your phone contacts for easy access next time you need us.</p>
+            <a href="https://www.dropbox.com/scl/fi/ftmibdqep4i1vxculwl2u/north-london-piano.vcf?rlkey=ec9v4w3faru1w1701x5g16s3a&st=ta0c0nue&dl=1" download="The-North-London-Piano.vcf" class="button" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 42px;text-decoration:none;font-weight:600;font-size:17px;border:2px solid #000000">📲 Add to Contacts</a>
+            <p style="margin:20px 0 0 0;color:#999999;font-size:14px">One tap - all our contact info saved!</p>
+          </td>
+        </tr>
+
+        <!-- Divider -->
+        <tr>
+          <td style="padding:0 30px">
             <div style="border-top:1px solid #e0e0e0"></div>
           </td>
         </tr>
 
         <!-- Why Choose Us -->
         <tr>
-          <td style="padding:30px 40px">
-            <p style="margin:0 0 20px 0;color:#000000;font-size:18px;font-weight:600;letter-spacing:-0.5px">Why Choose The North London Piano?</p>
+          <td style="padding:30px 30px">
+            <p class="section-title" style="margin:0 0 24px 0;color:#000000;font-size:20px;font-weight:600;letter-spacing:-0.5px">Why Choose The North London Piano?</p>
             
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
-                <td style="vertical-align:top;width:30px;padding:0 12px 12px 0">
-                  <span style="font-size:20px">✓</span>
+                <td style="vertical-align:top;width:35px;padding:0 14px 18px 0">
+                  <span style="font-size:24px">✓</span>
                 </td>
-                <td style="vertical-align:top;padding:0 0 12px 0">
-                  <p style="margin:0;color:#000000;font-size:14px;font-weight:600">Expert Piano Specialists</p>
-                  <p style="margin:3px 0 0 0;color:#666666;font-size:13px;line-height:1.5">Trained professionals with years of experience</p>
-                </td>
-              </tr>
-              <tr>
-                <td style="vertical-align:top;padding:0 12px 12px 0">
-                  <span style="font-size:20px">✓</span>
-                </td>
-                <td style="vertical-align:top;padding:0 0 12px 0">
-                  <p style="margin:0;color:#000000;font-size:14px;font-weight:600">Fully Insured Service</p>
-                  <p style="margin:3px 0 0 0;color:#666666;font-size:13px;line-height:1.5">Your valuable piano is protected throughout</p>
+                <td style="vertical-align:top;padding:0 0 18px 0">
+                  <p style="margin:0;color:#000000;font-size:17px;font-weight:600">Expert Piano Specialists</p>
+                  <p style="margin:6px 0 0 0;color:#666666;font-size:16px;line-height:1.5">Trained professionals with years of experience</p>
                 </td>
               </tr>
               <tr>
-                <td style="vertical-align:top;padding:0 12px 12px 0">
-                  <span style="font-size:20px">✓</span>
+                <td style="vertical-align:top;padding:0 14px 18px 0">
+                  <span style="font-size:24px">✓</span>
                 </td>
-                <td style="vertical-align:top;padding:0 0 12px 0">
-                  <p style="margin:0;color:#000000;font-size:14px;font-weight:600">Professional Equipment</p>
-                  <p style="margin:3px 0 0 0;color:#666666;font-size:13px;line-height:1.5">Specialized tools for safe transport</p>
+                <td style="vertical-align:top;padding:0 0 18px 0">
+                  <p style="margin:0;color:#000000;font-size:17px;font-weight:600">Fully Insured Service</p>
+                  <p style="margin:6px 0 0 0;color:#666666;font-size:16px;line-height:1.5">Your valuable piano is protected throughout</p>
                 </td>
               </tr>
               <tr>
-                <td style="vertical-align:top;padding:0 12px 0 0">
-                  <span style="font-size:20px">✓</span>
+                <td style="vertical-align:top;padding:0 14px 18px 0">
+                  <span style="font-size:24px">✓</span>
+                </td>
+                <td style="vertical-align:top;padding:0 0 18px 0">
+                  <p style="margin:0;color:#000000;font-size:17px;font-weight:600">Professional Equipment</p>
+                  <p style="margin:6px 0 0 0;color:#666666;font-size:16px;line-height:1.5">Specialized tools for safe transport</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="vertical-align:top;padding:0 14px 0 0">
+                  <span style="font-size:24px">✓</span>
                 </td>
                 <td style="vertical-align:top;padding:0">
-                  <p style="margin:0;color:#000000;font-size:14px;font-weight:600">Trusted in London</p>
-                  <p style="margin:3px 0 0 0;color:#666666;font-size:13px;line-height:1.5">Based in North London, serving all areas</p>
+                  <p style="margin:0;color:#000000;font-size:17px;font-weight:600">Trusted in London</p>
+                  <p style="margin:6px 0 0 0;color:#666666;font-size:16px;line-height:1.5">Based in North London, serving all areas</p>
                 </td>
               </tr>
             </table>
@@ -435,31 +475,31 @@ function generateEmailForCustomer(data) {
 
         <!-- Divider -->
         <tr>
-          <td style="padding:0 40px">
+          <td style="padding:0 30px">
             <div style="border-top:1px solid #e0e0e0"></div>
           </td>
         </tr>
 
-        <!-- Reviews Section -->
+        <!-- Reviews -->
         <tr>
-          <td style="padding:30px 40px;text-align:center">
-            <p style="margin:0 0 10px 0;font-size:32px;letter-spacing:3px;line-height:1">
+          <td style="padding:30px 30px;text-align:center">
+            <p style="margin:0 0 15px 0;font-size:38px;letter-spacing:4px;line-height:1">
               <span style="color:#FFD700">★</span><span style="color:#FFD700">★</span><span style="color:#FFD700">★</span><span style="color:#FFD700">★</span><span style="color:#FFD700">★</span>
             </p>
-            <p style="margin:0 0 20px 0;color:#000000;font-size:16px;font-weight:600">Trusted by Hundreds of Satisfied Customers</p>
-            <p style="margin:0 0 20px 0;color:#666666;font-size:14px;line-height:1.6">Don't just take our word for it - see what our happy customers say about our professional piano moving services.</p>
-            <a href="https://www.google.com/search?q=piano+transport+london+the+north+london+piano" target="_blank" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:12px 32px;text-decoration:none;font-weight:600;font-size:13px">Read Our Google Reviews →</a>
+            <p class="section-title" style="margin:0 0 20px 0;color:#000000;font-size:19px;font-weight:600">Trusted by Hundreds of Satisfied Customers</p>
+            <p class="text" style="margin:0 0 24px 0;color:#666666;font-size:17px;line-height:1.6">Don't just take our word for it - see what our happy customers say about our professional piano moving services.</p>
+            <a href="https://www.google.com/search?q=piano+transport+london+the+north+london+piano" target="_blank" class="button" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:16px 36px;text-decoration:none;font-weight:600;font-size:16px">Read Our Google Reviews →</a>
           </td>
         </tr>
 
         <!-- Footer -->
         <tr>
-          <td style="padding:30px 40px;background:#f9f9f9;border-top:2px solid #000000">
-            <p style="margin:0 0 5px 0;color:#000000;font-size:15px;font-weight:600">Best regards,</p>
-            <p style="margin:0 0 20px 0;color:#000000;font-size:15px;font-weight:600">The North London Piano Team</p>
+          <td style="padding:30px 30px;background:#f9f9f9;border-top:2px solid #000000">
+            <p style="margin:0 0 8px 0;color:#000000;font-size:17px;font-weight:600">Best regards,</p>
+            <p style="margin:0 0 24px 0;color:#000000;font-size:17px;font-weight:600">The North London Piano Team</p>
             
-            <div style="border-top:1px solid #e0e0e0;padding-top:15px;margin-top:15px">
-              <p style="margin:0;color:#999999;font-size:12px;line-height:1.6">
+            <div style="border-top:1px solid #e0e0e0;padding-top:20px;margin-top:20px">
+              <p style="margin:0;color:#999999;font-size:14px;line-height:1.7">
                 176 Millicent Grove, London N13 6HS<br/>
                 <a href="https://www.pianomoveteam.co.uk" style="color:#666666;text-decoration:underline">www.pianomoveteam.co.uk</a>
               </p>
