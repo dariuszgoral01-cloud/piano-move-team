@@ -106,9 +106,13 @@ module.exports = async (req, res) => {
 };
 
 // ==========================================
-// EMAIL FOR YOU (BUSINESS) - MOBILE OPTIMIZED
+// EMAIL FOR YOU (BUSINESS) - WITH JOB SHEET
 // ==========================================
 function generateEmailForYou(data, calLink, waLink, attachCount) {
+  const today = new Date();
+  const jobDate = today.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const jobRef = `PMT-${Date.now().toString().slice(-6)}`;
+
   return `
 <!DOCTYPE html>
 <html>
@@ -123,6 +127,11 @@ function generateEmailForYou(data, calLink, waLink, attachCount) {
       h1 { font-size: 22px !important; }
       .section-title { font-size: 16px !important; }
     }
+    @media print {
+      .no-print { display: none !important; }
+      .job-sheet { page-break-after: always; }
+      body { background: white !important; }
+    }
   </style>
 </head>
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#ffffff">
@@ -131,9 +140,9 @@ function generateEmailForYou(data, calLink, waLink, attachCount) {
   <tr>
     <td align="center">
       
-      <table class="container" width="650" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #000000;max-width:650px">
+      <!-- EMAIL HEADER -->
+      <table class="container no-print" width="650" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #000000;max-width:650px;margin-bottom:30px">
         
-        <!-- Header -->
         <tr>
           <td style="padding:30px 30px;border-bottom:3px solid #000000">
             <h1 style="margin:0;color:#000000;font-size:24px;font-weight:700;letter-spacing:-0.5px">New Piano Moving Quote Request</h1>
@@ -150,7 +159,6 @@ function generateEmailForYou(data, calLink, waLink, attachCount) {
         </tr>
         ` : ''}
 
-        <!-- Action Buttons - POPRAWIONE -->
         <tr>
           <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
             <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Quick Actions</p>
@@ -166,15 +174,19 @@ function generateEmailForYou(data, calLink, waLink, attachCount) {
                 </td>
               </tr>
               <tr>
-                <td>
+                <td style="padding-bottom:14px">
                   <a href="${waLink}" target="_blank" class="button" style="display:inline-block;background:#25D366;color:#ffffff;padding:18px 32px;text-decoration:none;font-weight:600;font-size:16px;border:2px solid #25D366;width:100%;max-width:300px;box-sizing:border-box;text-align:center">WhatsApp</a>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="javascript:window.print()" class="button" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:18px 32px;text-decoration:none;font-weight:600;font-size:16px;width:100%;max-width:300px;box-sizing:border-box;text-align:center">🖨️ Print Job Sheet</a>
                 </td>
               </tr>
             </table>
           </td>
         </tr>
 
-        <!-- Customer Info -->
         <tr>
           <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
             <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Customer Information</p>
@@ -193,13 +205,12 @@ function generateEmailForYou(data, calLink, waLink, attachCount) {
               </tr>
               <tr>
                 <td style="font-weight:600;color:#666666;font-size:15px;background:#f9f9f9">Piano</td>
-                <td style="color:#000000;font-size:16px">${data.pianotype || '<span style="color:#999999">Not specified</span>'}</td>
+                <td style="color:#000000;font-size:16px">${data.pianotype || 'Not specified'}</td>
               </tr>
             </table>
           </td>
         </tr>
 
-        <!-- Pickup -->
         <tr>
           <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
             <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">📍 Pickup Location</p>
@@ -220,7 +231,6 @@ function generateEmailForYou(data, calLink, waLink, attachCount) {
           </td>
         </tr>
 
-        <!-- Delivery -->
         <tr>
           <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
             <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">🚚 Delivery Location</p>
@@ -252,17 +262,137 @@ function generateEmailForYou(data, calLink, waLink, attachCount) {
         </tr>
         ` : ''}
 
-        <!-- Route -->
         <tr>
           <td style="padding:30px 30px;text-align:center;border-bottom:1px solid #e0e0e0">
             <a href="https://www.google.com/maps/dir/${encodeURIComponent(data.pickup_postcode)}/${encodeURIComponent(data.delivery_postcode)}" target="_blank" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 40px;text-decoration:none;font-weight:600;font-size:16px;border:2px solid #000000">View Route & Distance →</a>
           </td>
         </tr>
 
-        <!-- Footer -->
         <tr>
           <td style="padding:25px 30px;background:#f9f9f9;text-align:center">
             <p style="margin:0;color:#999999;font-size:13px;text-transform:uppercase;letter-spacing:1px">Piano Move Team • Quote Management</p>
+          </td>
+        </tr>
+
+      </table>
+
+      <!-- JOB SHEET - PRINTABLE -->
+      <table class="container job-sheet" width="650" cellpadding="0" cellspacing="0" style="background:#ffffff;border:3px solid #000000;max-width:650px">
+        
+        <tr>
+          <td style="padding:30px;border-bottom:3px solid #000000;background:#000000;color:#ffffff">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="width:70%">
+                  <h1 style="margin:0 0 5px 0;color:#ffffff;font-size:28px;font-weight:900">JOB SHEET</h1>
+                  <p style="margin:0;color:#ffffff;font-size:14px">The North London Piano</p>
+                </td>
+                <td style="width:30%;text-align:right">
+                  <p style="margin:0;color:#ffffff;font-size:12px">REF: <strong>${jobRef}</strong></p>
+                  <p style="margin:5px 0 0 0;color:#ffffff;font-size:12px">Date: ${jobDate}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:25px 30px;border-bottom:2px solid #000000">
+            <p style="margin:0 0 15px 0;color:#000000;font-size:16px;font-weight:700;text-transform:uppercase">CUSTOMER DETAILS</p>
+            <table width="100%" cellpadding="8" cellspacing="0">
+              <tr>
+                <td style="width:25%;font-weight:700;font-size:14px">Name:</td>
+                <td style="font-size:14px">${data.fullname}</td>
+              </tr>
+              <tr>
+                <td style="font-weight:700;font-size:14px">Phone:</td>
+                <td style="font-size:14px;font-weight:700">${data.phone}</td>
+              </tr>
+              <tr>
+                <td style="font-weight:700;font-size:14px">Email:</td>
+                <td style="font-size:14px">${data.email}</td>
+              </tr>
+              <tr>
+                <td style="font-weight:700;font-size:14px">Piano Type:</td>
+                <td style="font-size:14px;font-weight:700">${data.pianotype || 'Not specified'}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:25px 30px;border-bottom:2px solid #000000">
+            <p style="margin:0 0 15px 0;color:#000000;font-size:16px;font-weight:700;text-transform:uppercase">📍 PICKUP LOCATION</p>
+            <table width="100%" cellpadding="8" cellspacing="0" style="background:#f9f9f9;border:2px solid #000000">
+              <tr>
+                <td style="padding:15px">
+                  <p style="margin:0 0 5px 0;font-size:12px;color:#666666;font-weight:600">ADDRESS:</p>
+                  <p style="margin:0 0 15px 0;font-size:16px;font-weight:700;color:#000000">${data.pickup_postcode}</p>
+                  <p style="margin:0 0 5px 0;font-size:12px;color:#666666;font-weight:600">STEPS:</p>
+                  <p style="margin:0;font-size:24px;font-weight:900;color:#000000">${data.pickup_steps}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:25px 30px;border-bottom:2px solid #000000">
+            <p style="margin:0 0 15px 0;color:#000000;font-size:16px;font-weight:700;text-transform:uppercase">🚚 DELIVERY LOCATION</p>
+            <table width="100%" cellpadding="8" cellspacing="0" style="background:#f9f9f9;border:2px solid #000000">
+              <tr>
+                <td style="padding:15px">
+                  <p style="margin:0 0 5px 0;font-size:12px;color:#666666;font-weight:600">ADDRESS:</p>
+                  <p style="margin:0 0 15px 0;font-size:16px;font-weight:700;color:#000000">${data.delivery_postcode}</p>
+                  <p style="margin:0 0 5px 0;font-size:12px;color:#666666;font-weight:600">STEPS:</p>
+                  <p style="margin:0;font-size:24px;font-weight:900;color:#000000">${data.delivery_steps}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        ${data.specialrequirements ? `
+        <tr>
+          <td style="padding:25px 30px;border-bottom:2px solid #000000">
+            <p style="margin:0 0 15px 0;color:#000000;font-size:16px;font-weight:700;text-transform:uppercase">📝 SPECIAL REQUIREMENTS</p>
+            <div style="border:2px solid #000000;padding:15px;background:#fffacd">
+              <p style="margin:0;color:#000000;font-size:14px;line-height:1.6;white-space:pre-wrap">${data.specialrequirements}</p>
+            </div>
+          </td>
+        </tr>
+        ` : ''}
+
+        <tr>
+          <td style="padding:25px 30px;border-bottom:2px solid #000000">
+            <p style="margin:0 0 15px 0;color:#000000;font-size:16px;font-weight:700;text-transform:uppercase">✍️ NOTES / QUOTE</p>
+            <div style="border:2px solid #000000;min-height:150px;padding:15px;background:#ffffff">
+              <p style="margin:0;color:#999999;font-size:12px">Space for notes, quote amount, and additional information...</p>
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:25px 30px;border-bottom:2px solid #000000">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="width:50%;padding-right:10px">
+                  <p style="margin:0 0 10px 0;color:#000000;font-size:14px;font-weight:700">CREW SIGNATURE:</p>
+                  <div style="border-bottom:2px solid #000000;height:50px"></div>
+                </td>
+                <td style="width:50%;padding-left:10px">
+                  <p style="margin:0 0 10px 0;color:#000000;font-size:14px;font-weight:700">CUSTOMER SIGNATURE:</p>
+                  <div style="border-bottom:2px solid #000000;height:50px"></div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:20px 30px;background:#000000;text-align:center">
+            <p style="margin:0;color:#ffffff;font-size:11px">The North London Piano • 176 Millicent Grove, London N13 6HS</p>
+            <p style="margin:5px 0 0 0;color:#ffffff;font-size:11px">Tel: 020 3441 9463 • Mobile: 07711 872 434 • Email: thenorthpiano@googlemail.com</p>
           </td>
         </tr>
 
@@ -278,7 +408,7 @@ function generateEmailForYou(data, calLink, waLink, attachCount) {
 }
 
 // ==========================================
-// EMAIL FOR CUSTOMER - MOBILE OPTIMIZED
+// EMAIL FOR CUSTOMER - TABELA USUNIĘTA
 // ==========================================
 function generateEmailForCustomer(data) {
   return `
@@ -306,7 +436,6 @@ function generateEmailForCustomer(data) {
       
       <table class="container" width="650" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #000000;max-width:650px">
         
-        <!-- Header -->
         <tr>
           <td style="padding:40px 30px 30px 30px">
             <h1 style="margin:0 0 18px 0;color:#000000;font-size:30px;font-weight:700;letter-spacing:-0.5px">Hi ${data.fullname},</h1>
@@ -315,7 +444,6 @@ function generateEmailForCustomer(data) {
           </td>
         </tr>
 
-        <!-- Summary -->
         <tr>
           <td style="padding:0 30px 30px 30px">
             <table width="100%" cellpadding="22" cellspacing="0" style="border:2px solid #000000">
@@ -325,7 +453,7 @@ function generateEmailForCustomer(data) {
                   <table width="100%" cellpadding="10" cellspacing="0">
                     <tr style="border-bottom:1px solid #e0e0e0">
                       <td style="color:#666666;font-size:16px;width:35%;padding:10px 0">Piano Type</td>
-                      <td style="color:#000000;font-size:17px;font-weight:600;padding:10px 0">${data.pianotype || '<span style="color:#999999">Not specified</span>'}</td>
+                      <td style="color:#000000;font-size:17px;font-weight:600;padding:10px 0">${data.pianotype || 'Not specified'}</td>
                     </tr>
                     <tr style="border-bottom:1px solid #e0e0e0">
                       <td style="color:#666666;font-size:16px;padding:10px 0">Pickup</td>
@@ -342,21 +470,19 @@ function generateEmailForCustomer(data) {
           </td>
         </tr>
 
-        <!-- Divider -->
         <tr>
           <td style="padding:0 30px">
             <div style="border-top:1px solid #e0e0e0"></div>
           </td>
         </tr>
 
-        <!-- Contact -->
         <tr>
           <td style="padding:30px 30px">
             <p class="section-title" style="margin:0 0 20px 0;color:#000000;font-size:20px;font-weight:600;letter-spacing:-0.5px">Need to Reach Us?</p>
             <p class="text" style="margin:0 0 24px 0;color:#666666;font-size:17px;line-height:1.6">Have questions or want to discuss your piano move? We're here to help!</p>
             
             <table width="100%" cellpadding="0" cellspacing="0">
-              <tr>
+            <tr>
                 <td style="padding-bottom:14px">
                   <a href="mailto:thenorthpiano@googlemail.com?subject=Piano%20Quote%20-%20${encodeURIComponent(data.fullname)}" class="button" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 32px;text-decoration:none;font-weight:600;font-size:16px;border:2px solid #000000">Email Us</a>
                 </td>
@@ -375,42 +501,12 @@ function generateEmailForCustomer(data) {
           </td>
         </tr>
 
-        <!-- Contact Details -->
-        <tr>
-          <td style="padding:0 30px 30px 30px">
-            <table width="100%" cellpadding="16" cellspacing="0" style="border:1px solid #e0e0e0">
-              <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="color:#666666;font-size:15px;width:30%;background:#f9f9f9;font-weight:600">Email</td>
-                <td style="padding:16px 18px"><a href="mailto:thenorthpiano@googlemail.com" style="color:#000000;text-decoration:none;font-size:16px">thenorthpiano@googlemail.com</a></td>
-              </tr>
-              <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="color:#666666;font-size:15px;background:#f9f9f9;font-weight:600">Mobile</td>
-                <td style="padding:16px 18px"><a href="tel:07711872434" style="color:#000000;text-decoration:none;font-size:17px;font-weight:700">07711 872 434</a></td>
-              </tr>
-              <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="color:#666666;font-size:15px;background:#f9f9f9;font-weight:600">Landline</td>
-                <td style="padding:16px 18px"><a href="tel:02034419463" style="color:#000000;text-decoration:none;font-size:17px;font-weight:700">020 3441 9463</a></td>
-              </tr>
-              <tr style="border-bottom:1px solid #e0e0e0">
-                <td style="color:#666666;font-size:15px;background:#f9f9f9;font-weight:600">Freephone</td>
-                <td style="padding:16px 18px"><a href="tel:08000842902" style="color:#000000;text-decoration:none;font-size:17px;font-weight:700">0800 084 2902</a></td>
-              </tr>
-              <tr>
-                <td style="color:#666666;font-size:15px;background:#f9f9f9;font-weight:600">Address</td>
-                <td style="padding:16px 18px;color:#000000;font-size:16px">176 Millicent Grove<br/>London N13 6HS</td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-
-        <!-- Divider -->
         <tr>
           <td style="padding:0 30px">
             <div style="border-top:1px solid #e0e0e0"></div>
           </td>
         </tr>
 
-        <!-- Save Contact vCard - POPRAWIONE -->
         <tr>
           <td style="padding:30px 30px;text-align:center">
             <p class="section-title" style="margin:0 0 18px 0;color:#000000;font-size:20px;font-weight:600;letter-spacing:-0.5px">📱 Save Our Contact</p>
@@ -420,14 +516,12 @@ function generateEmailForCustomer(data) {
           </td>
         </tr>
 
-        <!-- Divider -->
         <tr>
           <td style="padding:0 30px">
             <div style="border-top:1px solid #e0e0e0"></div>
           </td>
         </tr>
 
-        <!-- Why Choose Us -->
         <tr>
           <td style="padding:30px 30px">
             <p class="section-title" style="margin:0 0 24px 0;color:#000000;font-size:20px;font-weight:600;letter-spacing:-0.5px">Why Choose The North London Piano?</p>
@@ -473,14 +567,12 @@ function generateEmailForCustomer(data) {
           </td>
         </tr>
 
-        <!-- Divider -->
         <tr>
           <td style="padding:0 30px">
             <div style="border-top:1px solid #e0e0e0"></div>
           </td>
         </tr>
 
-        <!-- Reviews -->
         <tr>
           <td style="padding:30px 30px;text-align:center">
             <p style="margin:0 0 15px 0;font-size:38px;letter-spacing:4px;line-height:1">
@@ -492,7 +584,6 @@ function generateEmailForCustomer(data) {
           </td>
         </tr>
 
-        <!-- Footer -->
         <tr>
           <td style="padding:30px 30px;background:#f9f9f9;border-top:2px solid #000000">
             <p style="margin:0 0 8px 0;color:#000000;font-size:17px;font-weight:600">Best regards,</p>
