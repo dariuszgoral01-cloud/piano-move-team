@@ -119,7 +119,7 @@ function generateEmailForYou(data, calLink, waLink, attachCount) {
   <style>
     @media only screen and (max-width: 600px) {
       .container { width: 100% !important; }
-      .button { padding: 16px 28px !important; font-size: 16px !important; }
+      .button { padding: 18px 32px !important; font-size: 16px !important; }
       h1 { font-size: 22px !important; }
       .section-title { font-size: 16px !important; }
     }
@@ -150,24 +150,24 @@ function generateEmailForYou(data, calLink, waLink, attachCount) {
         </tr>
         ` : ''}
 
-        <!-- Action Buttons -->
+        <!-- Action Buttons - POPRAWIONE -->
         <tr>
           <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
             <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Quick Actions</p>
-            <table cellpadding="0" cellspacing="0">
+            <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
-                <td style="padding:0 10px 12px 0">
-                  <a href="${calLink}" target="_blank" style="display:inline-block;background:#000000;color:#ffffff;padding:16px 28px;text-decoration:none;font-weight:600;font-size:15px;border:2px solid #000000">Add to Calendar</a>
+                <td style="padding-bottom:14px">
+                  <a href="${calLink}" target="_blank" class="button" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 32px;text-decoration:none;font-weight:600;font-size:16px;border:2px solid #000000;width:100%;max-width:300px;box-sizing:border-box;text-align:center">Add to Calendar</a>
                 </td>
               </tr>
               <tr>
-                <td style="padding:0 10px 12px 0">
-                  <a href="tel:${data.phone}" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:14px 28px;text-decoration:none;font-weight:600;font-size:15px">Call Now</a>
+                <td style="padding-bottom:14px">
+                  <a href="tel:${data.phone}" class="button" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:18px 32px;text-decoration:none;font-weight:600;font-size:16px;width:100%;max-width:300px;box-sizing:border-box;text-align:center">Call Now</a>
                 </td>
               </tr>
               <tr>
-                <td style="padding:0">
-                  <a href="${waLink}" target="_blank" style="display:inline-block;background:#25D366;color:#ffffff;padding:16px 28px;text-decoration:none;font-weight:600;font-size:15px;border:2px solid #25D366">WhatsApp</a>
+                <td>
+                  <a href="${waLink}" target="_blank" class="button" style="display:inline-block;background:#25D366;color:#ffffff;padding:18px 32px;text-decoration:none;font-weight:600;font-size:16px;border:2px solid #25D366;width:100%;max-width:300px;box-sizing:border-box;text-align:center">WhatsApp</a>
                 </td>
               </tr>
             </table>
@@ -410,12 +410,12 @@ function generateEmailForCustomer(data) {
           </td>
         </tr>
 
-        <!-- Save Contact vCard -->
+        <!-- Save Contact vCard - POPRAWIONE -->
         <tr>
           <td style="padding:30px 30px;text-align:center">
             <p class="section-title" style="margin:0 0 18px 0;color:#000000;font-size:20px;font-weight:600;letter-spacing:-0.5px">📱 Save Our Contact</p>
             <p class="text" style="margin:0 0 24px 0;color:#666666;font-size:17px;line-height:1.6">Add us to your phone contacts for easy access next time you need us.</p>
-            <a href="https://www.dropbox.com/scl/fi/ftmibdqep4i1vxculwl2u/north-london-piano.vcf?rlkey=ec9v4w3faru1w1701x5g16s3a&st=ta0c0nue&dl=1" download="The-North-London-Piano.vcf" class="button" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 42px;text-decoration:none;font-weight:600;font-size:17px;border:2px solid #000000">📲 Add to Contacts</a>
+            <a href="https://piano-move-team.vercel.app/contact.vcf" download="The-North-London-Piano.vcf" class="button" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 42px;text-decoration:none;font-weight:600;font-size:17px;border:2px solid #000000">📲 Add to Contacts</a>
             <p style="margin:20px 0 0 0;color:#999999;font-size:14px">One tap - all our contact info saved!</p>
           </td>
         </tr>
