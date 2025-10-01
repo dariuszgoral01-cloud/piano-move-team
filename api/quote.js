@@ -234,163 +234,170 @@ async function generateJobSheetPDF(data, jobRef) {
        .lineWidth(2)
        .stroke('#000000');
     
-    doc.fontSize(22).fillColor('#000000').font('Helvetica-Bold')
+    doc.fontSize(25).fillColor('#000000').font('Helvetica-Bold')
        .text('JOB SHEET', 35, 35);
     
-    doc.fontSize(9).fillColor('#666666').font('Helvetica')
-       .text('The North London Piano', 35, 60);
+    doc.fontSize(10).fillColor('#666666').font('Helvetica')
+       .text('The North London Piano', 35, 65);
     
-    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
        .text(`REF: ${jobRef}`, doc.page.width - 150, 35, { width: 120, align: 'right' });
     
-    doc.fontSize(8).fillColor('#666666').font('Helvetica')
-       .text(`Date: ${jobDate}`, doc.page.width - 150, 52, { width: 120, align: 'right' });
+    doc.fontSize(9).fillColor('#666666').font('Helvetica')
+       .text(`Date: ${jobDate}`, doc.page.width - 150, 55, { width: 120, align: 'right' });
 
     let yPos = 100;
 
     // === CUSTOMER DETAILS ===
-    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+    doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
        .text('CUSTOMER DETAILS', 35, yPos);
     
-    yPos += 12;
-    
-    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000')
-       .text('Name:', 35, yPos);
-    doc.fontSize(8).font('Helvetica').fillColor('#000000')
-       .text(data.fullname, 85, yPos);
-    yPos += 12;
-    
-    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000')
-       .text('Phone:', 35, yPos);
-    doc.fontSize(8).font('Helvetica').fillColor('#000000')
-       .text(data.phone, 85, yPos);
-    yPos += 12;
-    
-    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000')
-       .text('Email:', 35, yPos);
-    doc.fontSize(8).font('Helvetica').fillColor('#000000')
-       .text(data.email, 85, yPos);
-    yPos += 12;
-    
-    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000')
-       .text('Piano Type:', 35, yPos);
-    doc.fontSize(8).font('Helvetica').fillColor('#000000')
-       .text(data.pianotype || 'Not specified', 85, yPos);
     yPos += 15;
+    
+    doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000')
+       .text('Name:', 35, yPos);
+    doc.fontSize(10).font('Helvetica').fillColor('#000000')
+       .text(data.fullname, 85, yPos);
+    yPos += 14;
+    
+    doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000')
+       .text('Phone:', 35, yPos);
+    doc.fontSize(10).font('Helvetica').fillColor('#000000')
+       .text(data.phone, 85, yPos);
+    yPos += 14;
+    
+    doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000')
+       .text('Email:', 35, yPos);
+    doc.fontSize(10).font('Helvetica').fillColor('#000000')
+       .text(data.email, 85, yPos);
+    yPos += 14;
+    
+    doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000')
+       .text('Piano Type:', 35, yPos);
+    doc.fontSize(10).font('Helvetica').fillColor('#000000')
+       .text(data.pianotype || 'Not specified', 85, yPos);
+    yPos += 18;
 
     doc.moveTo(35, yPos).lineTo(doc.page.width - 35, yPos).lineWidth(0.5).stroke('#cccccc');
-    yPos += 12;
+    yPos += 15;
 
     // === PICKUP LOCATION ===
-    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+    doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
        .text('PICKUP LOCATION', 35, yPos);
     
-    yPos += 12;
-    const boxHeight = 50;
+    yPos += 15;
+    const boxHeight = 45;
     doc.rect(35, yPos, doc.page.width - 70, boxHeight)
        .lineWidth(1.5)
        .stroke('#000000');
     
-    doc.fontSize(7).fillColor('#999999').font('Helvetica-Bold')
-       .text('ADDRESS:', 45, yPos + 8);
-    doc.fontSize(9).fillColor('#000000').font('Helvetica-Bold')
-       .text(data.pickup_postcode, 45, yPos + 20, { width: 260 });
+    doc.fontSize(11).fillColor('#999999').font('Helvetica-Bold')
+       .text('ADDRESS:', 45, yPos + 10);
+    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
+       .text(data.pickup_postcode, 45, yPos + 22, { width: 260 });
     
     const stepsX = doc.page.width - 110;
-    doc.fontSize(7).fillColor('#999999').font('Helvetica-Bold')
-       .text('STEPS:', stepsX, yPos + 8);
-    doc.fontSize(20).fillColor('#000000').font('Helvetica-Bold')
-       .text(data.pickup_steps.toString(), stepsX, yPos + 18);
+    doc.fontSize(11).fillColor('#999999').font('Helvetica-Bold')
+       .text('STEPS:', stepsX, yPos + 10);
+    doc.fontSize(22).fillColor('#000000').font('Helvetica-Bold')
+       .text(data.pickup_steps.toString(), stepsX, yPos + 20);
 
-    yPos += boxHeight + 12;
+    yPos += boxHeight + 15;
 
     // === DELIVERY LOCATION ===
-    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+    doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
        .text('DELIVERY LOCATION', 35, yPos);
     
-    yPos += 12;
+    yPos += 15;
     doc.rect(35, yPos, doc.page.width - 70, boxHeight)
        .lineWidth(1.5)
        .stroke('#000000');
     
-    doc.fontSize(7).fillColor('#999999').font('Helvetica-Bold')
-       .text('ADDRESS:', 45, yPos + 8);
-    doc.fontSize(9).fillColor('#000000').font('Helvetica-Bold')
-       .text(data.delivery_postcode, 45, yPos + 20, { width: 260 });
+    doc.fontSize(11).fillColor('#999999').font('Helvetica-Bold')
+       .text('ADDRESS:', 45, yPos + 10);
+    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
+       .text(data.delivery_postcode, 45, yPos + 22, { width: 260 });
     
-    doc.fontSize(7).fillColor('#999999').font('Helvetica-Bold')
-       .text('STEPS:', stepsX, yPos + 8);
-    doc.fontSize(20).fillColor('#000000').font('Helvetica-Bold')
-       .text(data.delivery_steps.toString(), stepsX, yPos + 18);
+    doc.fontSize(11).fillColor('#999999').font('Helvetica-Bold')
+       .text('STEPS:', stepsX, yPos + 10);
+    doc.fontSize(22).fillColor('#000000').font('Helvetica-Bold')
+       .text(data.delivery_steps.toString(), stepsX, yPos + 20);
 
-    yPos += boxHeight + 12;
+    yPos += boxHeight + 15;
 
     // === SPECIAL REQUIREMENTS ===
     if (data.specialrequirements) {
-      doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+      doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
          .text('SPECIAL REQUIREMENTS', 35, yPos);
       
-      yPos += 12;
+      yPos += 15;
       
-      const textHeight = Math.min(45, doc.heightOfString(data.specialrequirements, {
+      const textHeight = Math.min(40, doc.heightOfString(data.specialrequirements, {
         width: doc.page.width - 90,
         lineGap: 1
-      }) + 18);
+      }) + 15);
       
       doc.rect(35, yPos, doc.page.width - 70, textHeight)
          .fillAndStroke('#FFFEF0', '#000000');
       
-      doc.fontSize(8).fillColor('#000000').font('Helvetica')
-         .text(data.specialrequirements, 45, yPos + 8, { 
+      doc.fontSize(12).fillColor('#000000').font('Helvetica')
+         .text(data.specialrequirements, 45, yPos + 10, { 
            width: doc.page.width - 90,
            lineGap: 1
          });
       
-      yPos += textHeight + 10;
+      yPos += textHeight + 12;
     }
 
     // === NOTES / QUOTE ===
-    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+    doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
        .text('NOTES / QUOTE', 35, yPos);
     
-    yPos += 12;
-    doc.rect(35, yPos, doc.page.width - 70, 60)
+    yPos += 15;
+    
+    // Zmniejszamy wysokość ramki notes, aby zmieścić wszystko
+    const notesHeight = 45;
+    doc.rect(35, yPos, doc.page.width - 70, notesHeight)
        .lineWidth(1)
        .stroke('#000000');
     
-    doc.fontSize(7).fillColor('#999999').font('Helvetica')
-       .text('Space for notes, quote amount, and additional information...', 45, yPos + 8);
+    doc.fontSize(11).fillColor('#999999').font('Helvetica')
+       .text('Space for notes, quote amount, and additional information...', 45, yPos + 15);
 
-    yPos += 72;
+    yPos += notesHeight + 15;
 
     // === SIGNATURES ===
     const sigWidth = (doc.page.width - 90) / 2;
     
-    doc.fontSize(8).fillColor('#000000').font('Helvetica-Bold')
+    doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
        .text('CREW SIGNATURE:', 35, yPos);
-    doc.moveTo(35, yPos + 25).lineTo(35 + sigWidth, yPos + 25)
+    doc.moveTo(35, yPos + 20).lineTo(35 + sigWidth, yPos + 20)
        .lineWidth(1)
        .stroke('#000000');
     
-    doc.fontSize(8).fillColor('#000000').font('Helvetica-Bold')
+    doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
        .text('CUSTOMER SIGNATURE:', doc.page.width / 2 + 5, yPos);
-    doc.moveTo(doc.page.width / 2 + 5, yPos + 25)
-       .lineTo(doc.page.width - 35, yPos + 25)
+    doc.moveTo(doc.page.width / 2 + 5, yPos + 20)
+       .lineTo(doc.page.width - 35, yPos + 20)
        .lineWidth(1)
        .stroke('#000000');
 
-    // === FOOTER ===
-    // Podnosimy ramkę stopki o 1.5 cm do góry (zamiast 50 dajemy 35)
-    const footerY = doc.page.height - 35;
+    yPos += 40;
+
+    // === FOOTER - PODNOSIMY DO GÓRY I USUWAMY RAMKĘ ===
+    const footerY = yPos;
     
-    doc.rect(25, footerY, doc.page.width - 50, 25)
-       .lineWidth(1.5)
-       .stroke('#000000');
+    // Usuwamy ramkę i po prostu wyświetlamy tekst
+    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+       .text('The North London Piano • 176 Millicent Grove, London N13 6HS', 
+             35, footerY, { 
+               align: 'center', 
+               width: doc.page.width - 70 
+             });
     
-    // Zmniejszamy font i dodajemy wszystkie informacje w jednej ramce
-    doc.fontSize(5.5).fillColor('#000000').font('Helvetica')
-       .text('The North London Piano • 176 Millicent Grove, London N13 6HS • Tel: 020 3441 9463 • Mobile: 07711 872 434 • Email: thenorthpiano@googlemail.com',
-             35, footerY + 8, { 
+    doc.fontSize(8).fillColor('#000000').font('Helvetica-Bold')
+       .text('Tel: 020 3441 9463 • Mobile: 07711 872 434 • Email: thenorthpiano@googlemail.com',
+             35, footerY + 12, { 
                align: 'center', 
                width: doc.page.width - 70 
              });
