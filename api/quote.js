@@ -367,40 +367,44 @@ async function generateJobSheetPDF(data, jobRef) {
     yPos += notesHeight + 15;
 
     // === SIGNATURES ===
-  const sigWidth = (doc.page.width - 90) / 2;
+    const sigWidth = (doc.page.width - 90) / 2;
+    
+    doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
+       .text('CREW SIGNATURE:', 35, yPos);
+    doc.moveTo(35, yPos + 20).lineTo(35 + sigWidth, yPos + 20)
+       .lineWidth(1)
+       .stroke('#000000');
+    
+    doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
+       .text('CUSTOMER SIGNATURE:', doc.page.width / 2 + 5, yPos);
+    doc.moveTo(doc.page.width / 2 + 5, yPos + 20)
+       .lineTo(doc.page.width - 35, yPos + 20)
+       .lineWidth(1)
+       .stroke('#000000');
 
-doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
-   .text('CREW SIGNATURE:', 35, yPos);
-doc.moveTo(35, yPos + 20).lineTo(35 + sigWidth, yPos + 20)
-   .lineWidth(1)
-   .stroke('#000000');
+    yPos += 35; // Zmniejszone z 40 do 35
 
-doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
-   .text('CUSTOMER SIGNATURE:', doc.page.width / 2 + 5, yPos);
-doc.moveTo(doc.page.width / 2 + 5, yPos + 20)
-   .lineTo(doc.page.width - 35, yPos + 20)
-   .lineWidth(1)
-   .stroke('#000000');
+    // === FOOTER - PRZESUWAMY DO DOŁU STRONY ===
+    const footerY = doc.page.height - 40; // Umieszczamy 40 punktów od dołu
 
-yPos += 35; // Zmniejszone z 40 do 35
+    // Usuwamy ramkę i po prostu wyświetlamy tekst
+    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+       .text('The North London Piano • 176 Millicent Grove, London N13 6HS', 
+             35, footerY, { 
+               align: 'center', 
+               width: doc.page.width - 70 
+             });
+    
+    doc.fontSize(8).fillColor('#000000').font('Helvetica-Bold')
+       .text('Tel: 020 3441 9463 • Mobile: 07711 872 434 • Email: thenorthpiano@googlemail.com',
+             35, footerY + 12, { 
+               align: 'center', 
+               width: doc.page.width - 70 
+             });
 
-// === FOOTER - PRZESUWAMY DO DOŁU STRONY ===
-const footerY = doc.page.height - 40; // Umieszczamy 40 punktów od dołu
-
-// Usuwamy ramkę i po prostu wyświetlamy tekst
-doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
-   .text('The North London Piano • 176 Millicent Grove, London N13 6HS', 
-         35, footerY, { 
-           align: 'center', 
-           width: doc.page.width - 70 
-         });
-
-doc.fontSize(8).fillColor('#000000').font('Helvetica-Bold')
-   .text('Tel: 020 3441 9463 • Mobile: 07711 872 434 • Email: thenorthpiano@googlemail.com',
-         35, footerY + 12, { 
-           align: 'center', 
-           width: doc.page.width - 70 
-         });
+    doc.end();
+  });
+}
 
 // ==========================================
 // EMAIL FOR BUSINESS
@@ -748,5 +752,3 @@ function generateEmailForCustomer(data, vcfUrl) {
 </html>
   `;
 }
-
-
