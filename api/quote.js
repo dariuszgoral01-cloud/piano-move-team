@@ -367,7 +367,7 @@ async function generateJobSheetPDF(data, jobRef) {
     yPos += notesHeight + 15;
 
     // === SIGNATURES ===
-    const sigWidth = (doc.page.width - 90) / 2;
+    const sigWidth = (doc.page.width - 45) / 2;
     
     doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
        .text('CREW SIGNATURE:', 35, yPos);
@@ -388,14 +388,14 @@ async function generateJobSheetPDF(data, jobRef) {
     const footerY = yPos;
     
     // Usuwamy ramkę i po prostu wyświetlamy tekst
-    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+    doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
        .text('The North London Piano • 176 Millicent Grove, London N13 6HS', 
              35, footerY, { 
                align: 'center', 
                width: doc.page.width - 70 
              });
     
-    doc.fontSize(8).fillColor('#000000').font('Helvetica-Bold')
+    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
        .text('Tel: 020 3441 9463 • Mobile: 07711 872 434 • Email: thenorthpiano@googlemail.com',
              35, footerY + 12, { 
                align: 'center', 
@@ -752,3 +752,4 @@ function generateEmailForCustomer(data, vcfUrl) {
 </html>
   `;
 }
+
