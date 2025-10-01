@@ -16,7 +16,8 @@
   "author": "The North London Piano",
   "license": "MIT",
   "dependencies": {
-    "resend": "^3.5.0"
+    "resend": "^3.5.0",
+    "pdfkit": "^0.15.0"
   },
   "engines": {
     "node": ">=18.x"
