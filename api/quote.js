@@ -367,25 +367,25 @@ async function generateJobSheetPDF(data, jobRef) {
     yPos += notesHeight + 15;
 
     // === SIGNATURES ===
-    const sigWidth = (doc.page.width - 90) / 2;
+    const sigWidth = (doc.page.width - 60) / 2;
     
     doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
        .text('CREW SIGNATURE:', 35, yPos);
-    doc.moveTo(35, yPos + 20).lineTo(35 + sigWidth, yPos + 20)
+    doc.moveTo(35, yPos + 10).lineTo(35 + sigWidth, yPos + 10)
        .lineWidth(1)
        .stroke('#000000');
     
     doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
        .text('CUSTOMER SIGNATURE:', doc.page.width / 2 + 5, yPos);
-    doc.moveTo(doc.page.width / 2 + 5, yPos + 20)
-       .lineTo(doc.page.width - 35, yPos + 20)
+    doc.moveTo(doc.page.width / 2 + 5, yPos + 10)
+       .lineTo(doc.page.width - 35, yPos + 10)
        .lineWidth(1)
        .stroke('#000000');
 
-    yPos += 35; // Zmniejszone z 40 do 35
+    yPos += 38; // Zmniejszone z 40 do 35
 
     // === FOOTER - PRZESUWAMY DO DOŁU STRONY ===
-    const footerY = doc.page.height - 40; // Umieszczamy 40 punktów od dołu
+    const footerY = doc.page.height - 60; // Umieszczamy 40 punktów od dołu
 
     // Usuwamy ramkę i po prostu wyświetlamy tekst
     doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
@@ -752,3 +752,4 @@ function generateEmailForCustomer(data, vcfUrl) {
 </html>
   `;
 }
+
