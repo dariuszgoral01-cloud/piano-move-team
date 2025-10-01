@@ -121,25 +121,30 @@ module.exports = async (req, res) => {
     });
 
     if (emailError) {
-      console.error('Resend error:', emailError);
+      console.error('Resend error (business email):', emailError);
       return res.status(500).json({ error: emailError.message });
     }
 
-    console.log('Email sent with PDF link. ID:', emailData?.id);
+    console.log('Business email sent. ID:', emailData?.id);
 
-    await resend.emails.send({
+    const { data: customerEmailData, error: customerEmailError } = await resend.emails.send({
       from: 'Piano Move Team <noreply@pianomoveteam.co.uk>',
       to: [data.email],
       subject: 'Thank you for your piano moving quote request',
       html: generateEmailForCustomer(data),
     });
 
-    console.log('Auto-response sent to', data.email);
+    if (customerEmailError) {
+      console.error('Resend error (customer email):', customerEmailError);
+    } else {
+      console.log('Customer email sent to', data.email);
+    }
 
     return res.status(200).json({ 
       success: true, 
       message: 'Quote sent successfully',
       emailId: emailData?.id,
+      customerEmailId: customerEmailData?.id,
       pdfUrl: pdfPublicUrl,
       jobRef: jobRef,
       attachments: allAttachments.length
@@ -152,7 +157,7 @@ module.exports = async (req, res) => {
 };
 
 // ==========================================
-// PDF JOB SHEET GENERATOR - SINGLE PAGE, CLEAN
+// PDF - CLEAN, NO STRIKETHROUGH, ONE PAGE
 // ==========================================
 async function generateJobSheetPDF(data, jobRef) {
   return new Promise((resolve, reject) => {
@@ -190,76 +195,75 @@ async function generateJobSheetPDF(data, jobRef) {
        .text('The North London Piano', 45, 72);
     
     doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
-       .text(`REF: ${jobRef}`, doc.page.width - 160, 45);
+       .text(`REF: ${jobRef}`, doc.page.width - 170, 45, { width: 130, align: 'right' });
     
     doc.fontSize(9).fillColor('#666666').font('Helvetica')
-       .text(`Date: ${jobDate}`, doc.page.width - 160, 62);
+       .text(`Date: ${jobDate}`, doc.page.width - 170, 62, { width: 130, align: 'right' });
 
     let yPos = 120;
 
-    // === CUSTOMER DETAILS ===
+    // === CUSTOMER DETAILS - NO UNDERLINE ===
     doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
        .text('CUSTOMER DETAILS', 40, yPos);
     
-    yPos += 3;
-    doc.moveTo(40, yPos).lineTo(180, yPos).lineWidth(1.5).stroke('#000000');
+    yPos += 15;
     
-    yPos += 12;
-    doc.fontSize(9).font('Helvetica');
+    doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000')
+       .text('Name:', 40, yPos);
+    doc.fontSize(9).font('Helvetica').fillColor('#000000')
+       .text(data.fullname, 100, yPos);
+    yPos += 14;
     
-    const customerInfo = [
-      ['Name:', data.fullname],
-      ['Phone:', data.phone],
-      ['Email:', data.email],
-      ['Piano Type:', data.pianotype || 'Not specified']
-    ];
+    doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000')
+       .text('Phone:', 40, yPos);
+    doc.fontSize(9).font('Helvetica').fillColor('#000000')
+       .text(data.phone, 100, yPos);
+    yPos += 14;
+    
+    doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000')
+       .text('Email:', 40, yPos);
+    doc.fontSize(9).font('Helvetica').fillColor('#000000')
+       .text(data.email, 100, yPos);
+    yPos += 14;
+    
+    doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000')
+       .text('Piano Type:', 40, yPos);
+    doc.fontSize(9).font('Helvetica').fillColor('#000000')
+       .text(data.pianotype || 'Not specified', 100, yPos);
+    yPos += 20;
 
-    customerInfo.forEach(([label, value]) => {
-      doc.font('Helvetica-Bold').fillColor('#000000').text(label, 40, yPos, { width: 90, continued: true })
-         .font('Helvetica').fillColor('#000000').text(value);
-      yPos += 14;
-    });
-
-    yPos += 8;
     doc.moveTo(40, yPos).lineTo(doc.page.width - 40, yPos).lineWidth(0.5).stroke('#cccccc');
     yPos += 15;
 
-    // === PICKUP LOCATION (2-COLUMN) ===
+    // === PICKUP LOCATION - NO UNDERLINE ===
     doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
        .text('PICKUP LOCATION', 40, yPos);
     
-    yPos += 3;
-    doc.moveTo(40, yPos).lineTo(200, yPos).lineWidth(1.5).stroke('#000000');
-    
     yPos += 15;
-    doc.rect(40, yPos, doc.page.width - 80, 55)
+    const boxHeight = 55;
+    doc.rect(40, yPos, doc.page.width - 80, boxHeight)
        .lineWidth(1.5)
        .stroke('#000000');
     
-    // Left column - Address
     doc.fontSize(8).fillColor('#999999').font('Helvetica-Bold')
        .text('ADDRESS:', 50, yPos + 10);
     doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
        .text(data.pickup_postcode, 50, yPos + 25, { width: 280 });
     
-    // Right column - Steps
-    const stepsX = doc.page.width - 150;
+    const stepsX = doc.page.width - 120;
     doc.fontSize(8).fillColor('#999999').font('Helvetica-Bold')
        .text('STEPS:', stepsX, yPos + 10);
     doc.fontSize(22).fillColor('#000000').font('Helvetica-Bold')
        .text(data.pickup_steps.toString(), stepsX, yPos + 23);
 
-    yPos += 70;
+    yPos += boxHeight + 15;
 
-    // === DELIVERY LOCATION (2-COLUMN) ===
+    // === DELIVERY LOCATION - NO UNDERLINE ===
     doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
        .text('DELIVERY LOCATION', 40, yPos);
     
-    yPos += 3;
-    doc.moveTo(40, yPos).lineTo(220, yPos).lineWidth(1.5).stroke('#000000');
-    
     yPos += 15;
-    doc.rect(40, yPos, doc.page.width - 80, 55)
+    doc.rect(40, yPos, doc.page.width - 80, boxHeight)
        .lineWidth(1.5)
        .stroke('#000000');
     
@@ -273,19 +277,16 @@ async function generateJobSheetPDF(data, jobRef) {
     doc.fontSize(22).fillColor('#000000').font('Helvetica-Bold')
        .text(data.delivery_steps.toString(), stepsX, yPos + 23);
 
-    yPos += 70;
+    yPos += boxHeight + 15;
 
-    // === SPECIAL REQUIREMENTS ===
+    // === SPECIAL REQUIREMENTS - NO UNDERLINE ===
     if (data.specialrequirements) {
       doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
          .text('SPECIAL REQUIREMENTS', 40, yPos);
       
-      yPos += 3;
-      doc.moveTo(40, yPos).lineTo(240, yPos).lineWidth(1.5).stroke('#000000');
-      
       yPos += 15;
       
-      const textHeight = Math.min(60, doc.heightOfString(data.specialrequirements, {
+      const textHeight = Math.min(50, doc.heightOfString(data.specialrequirements, {
         width: doc.page.width - 100,
         lineGap: 2
       }) + 20);
@@ -302,36 +303,33 @@ async function generateJobSheetPDF(data, jobRef) {
       yPos += textHeight + 12;
     }
 
-    // === NOTES / QUOTE SECTION ===
+    // === NOTES / QUOTE - NO UNDERLINE ===
     doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
        .text('NOTES / QUOTE', 40, yPos);
     
-    yPos += 3;
-    doc.moveTo(40, yPos).lineTo(180, yPos).lineWidth(1.5).stroke('#000000');
-    
     yPos += 15;
-    doc.rect(40, yPos, doc.page.width - 80, 80)
+    doc.rect(40, yPos, doc.page.width - 80, 70)
        .lineWidth(1)
        .stroke('#000000');
     
     doc.fontSize(8).fillColor('#999999').font('Helvetica')
        .text('Space for notes, quote amount, and additional information...', 50, yPos + 10);
 
-    yPos += 95;
+    yPos += 85;
 
     // === SIGNATURES ===
     const sigWidth = (doc.page.width - 100) / 2;
     
     doc.fontSize(9).fillColor('#000000').font('Helvetica-Bold')
        .text('CREW SIGNATURE:', 40, yPos);
-    doc.moveTo(40, yPos + 40).lineTo(40 + sigWidth, yPos + 40)
+    doc.moveTo(40, yPos + 30).lineTo(40 + sigWidth, yPos + 30)
        .lineWidth(1)
        .stroke('#000000');
     
     doc.fontSize(9).fillColor('#000000').font('Helvetica-Bold')
        .text('CUSTOMER SIGNATURE:', doc.page.width / 2 + 10, yPos);
-    doc.moveTo(doc.page.width / 2 + 10, yPos + 40)
-       .lineTo(doc.page.width - 40, yPos + 40)
+    doc.moveTo(doc.page.width / 2 + 10, yPos + 30)
+       .lineTo(doc.page.width - 40, yPos + 30)
        .lineWidth(1)
        .stroke('#000000');
 
@@ -360,7 +358,7 @@ async function generateJobSheetPDF(data, jobRef) {
 }
 
 // ==========================================
-// EMAIL FOR YOU (BUSINESS) - 4 EQUAL BUTTONS
+// EMAIL FOR BUSINESS
 // ==========================================
 function generateEmailForYou(data, calLink, waLink, attachCount, jobRef, pdfUrl) {
   return `
@@ -372,21 +370,22 @@ function generateEmailForYou(data, calLink, waLink, attachCount, jobRef, pdfUrl)
   <style>
     @media only screen and (max-width: 600px) {
       .container { width: 100% !important; }
-      .button { width: 100% !important; display: block !important; margin: 0 0 12px 0 !important; }
+      .button-row td { display: block !important; width: 100% !important; padding: 0 0 12px 0 !important; }
+      .button { width: 100% !important; display: block !important; }
       h1 { font-size: 22px !important; }
     }
   </style>
 </head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#ffffff">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#f5f5f5">
   
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:20px 0">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:20px 0">
   <tr>
     <td align="center">
       
-      <table class="container" width="650" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #000000;max-width:650px">
+      <table class="container" width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #000000;max-width:600px">
         
         <tr>
-          <td style="padding:30px 30px;border-bottom:3px solid #000000">
+          <td style="padding:30px;border-bottom:3px solid #000000">
             <h1 style="margin:0;color:#000000;font-size:24px;font-weight:700">New Piano Moving Quote Request</h1>
             <p style="margin:10px 0 0 0;color:#666666;font-size:15px">${new Date().toLocaleString('en-GB', {timeZone:'Europe/London',dateStyle:'full',timeStyle:'short'})}</p>
           </td>
@@ -401,24 +400,24 @@ function generateEmailForYou(data, calLink, waLink, attachCount, jobRef, pdfUrl)
         ` : ''}
 
         <tr>
-          <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
+          <td style="padding:30px;border-bottom:1px solid #e0e0e0">
             <p style="margin:0 0 20px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase">Quick Actions</p>
             
             <table width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td width="48%" style="padding:0 2% 15px 0">
-                  <a href="${calLink}" target="_blank" class="button" style="display:block;background:#4A90E2;color:#ffffff;padding:16px 20px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px;text-align:center">Add to Calendar</a>
+              <tr class="button-row">
+                <td width="49%" style="padding:0 1% 12px 0;vertical-align:top">
+                  <a href="${calLink}" target="_blank" class="button" style="display:block;background:#4A90E2;color:#ffffff;padding:15px 10px;text-decoration:none;font-weight:600;font-size:14px;border-radius:6px;text-align:center">Add to Calendar</a>
                 </td>
-                <td width="48%" style="padding:0 0 15px 2%">
-                  <a href="tel:${data.phone}" class="button" style="display:block;background:#FF6B6B;color:#ffffff;padding:16px 20px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px;text-align:center">Call Now</a>
+                <td width="49%" style="padding:0 0 12px 1%;vertical-align:top">
+                  <a href="tel:${data.phone}" class="button" style="display:block;background:#FF6B6B;color:#ffffff;padding:15px 10px;text-decoration:none;font-weight:600;font-size:14px;border-radius:6px;text-align:center">Call Now</a>
                 </td>
               </tr>
-              <tr>
-                <td width="48%" style="padding:0 2% 0 0">
-                  <a href="${waLink}" target="_blank" class="button" style="display:block;background:#25D366;color:#ffffff;padding:16px 20px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px;text-align:center">WhatsApp</a>
+              <tr class="button-row">
+                <td width="49%" style="padding:0 1% 0 0;vertical-align:top">
+                  <a href="${waLink}" target="_blank" class="button" style="display:block;background:#25D366;color:#ffffff;padding:15px 10px;text-decoration:none;font-weight:600;font-size:14px;border-radius:6px;text-align:center">WhatsApp</a>
                 </td>
-                <td width="48%" style="padding:0 0 0 2%">
-                  <a href="${pdfUrl}" target="_blank" class="button" style="display:block;background:#9B59B6;color:#ffffff;padding:16px 20px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px;text-align:center">Print Job Sheet</a>
+                <td width="49%" style="padding:0 0 0 1%;vertical-align:top">
+                  <a href="${pdfUrl}" target="_blank" class="button" style="display:block;background:#9B59B6;color:#ffffff;padding:15px 10px;text-decoration:none;font-weight:600;font-size:14px;border-radius:6px;text-align:center">Print Job Sheet</a>
                 </td>
               </tr>
             </table>
@@ -426,7 +425,7 @@ function generateEmailForYou(data, calLink, waLink, attachCount, jobRef, pdfUrl)
         </tr>
 
         <tr>
-          <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
+          <td style="padding:30px;border-bottom:1px solid #e0e0e0">
             <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase">Customer Information</p>
             <table width="100%" cellpadding="12" cellspacing="0" style="border:1px solid #e0e0e0">
               <tr style="border-bottom:1px solid #e0e0e0">
@@ -450,7 +449,7 @@ function generateEmailForYou(data, calLink, waLink, attachCount, jobRef, pdfUrl)
         </tr>
 
         <tr>
-          <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
+          <td style="padding:30px;border-bottom:1px solid #e0e0e0">
             <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600">Pickup Location</p>
             <table width="100%" cellpadding="12" cellspacing="0" style="border:1px solid #e0e0e0;background:#f9f9f9">
               <tr>
@@ -470,7 +469,7 @@ function generateEmailForYou(data, calLink, waLink, attachCount, jobRef, pdfUrl)
         </tr>
 
         <tr>
-          <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
+          <td style="padding:30px;border-bottom:1px solid #e0e0e0">
             <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600">Delivery Location</p>
             <table width="100%" cellpadding="12" cellspacing="0" style="border:1px solid #e0e0e0;background:#f9f9f9">
               <tr>
@@ -491,7 +490,7 @@ function generateEmailForYou(data, calLink, waLink, attachCount, jobRef, pdfUrl)
 
         ${data.specialrequirements ? `
         <tr>
-          <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
+          <td style="padding:30px;border-bottom:1px solid #e0e0e0">
             <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600">Special Requirements</p>
             <div style="border:2px solid #e0e0e0;padding:18px;background:#fffacd;border-radius:6px">
               <p style="margin:0;color:#333333;font-size:15px;line-height:1.6;white-space:pre-wrap">${data.specialrequirements}</p>
@@ -523,9 +522,6 @@ function generateEmailForYou(data, calLink, waLink, attachCount, jobRef, pdfUrl)
   `;
 }
 
-// ==========================================
-// HELPER FUNCTIONS
-// ==========================================
 function generateCalendarLink(data) {
   const eventTitle = `Piano Move - ${data.fullname}`;
   const eventDesc = `Customer: ${data.fullname}\nPhone: ${data.phone}\nEmail: ${data.email}\nPiano: ${data.pianotype || 'Not specified'}\nPickup: ${data.pickup_postcode} (${data.pickup_steps} steps)\nDelivery: ${data.delivery_postcode} (${data.delivery_steps} steps)\n\nSpecial: ${data.specialrequirements || 'None'}`;
@@ -537,9 +533,22 @@ function generateWhatsAppLink(data) {
 }
 
 // ==========================================
-// EMAIL FOR CUSTOMER - 3 EQUAL BUTTONS IN ROW
+// EMAIL FOR CUSTOMER
 // ==========================================
 function generateEmailForCustomer(data) {
+  const vcfContent = `BEGIN:VCARD
+VERSION:3.0
+FN:The North London Piano
+ORG:The North London Piano
+TEL;TYPE=WORK,VOICE:02034419463
+TEL;TYPE=CELL:07711872434
+EMAIL:thenorthpiano@googlemail.com
+ADR;TYPE=WORK:;;176 Millicent Grove;London;;N13 6HS;UK
+URL:https://www.pianomoveteam.co.uk
+END:VCARD`;
+
+  const vcfBase64 = Buffer.from(vcfContent).toString('base64');
+
   return `
 <!DOCTYPE html>
 <html>
@@ -549,20 +558,20 @@ function generateEmailForCustomer(data) {
   <style>
     @media only screen and (max-width: 600px) {
       .container { width: 100% !important; }
-      .button-cell { width: 100% !important; display: block !important; padding: 0 0 12px 0 !important; }
+      .button-row td { display: block !important; width: 100% !important; padding: 0 0 12px 0 !important; }
       .button { width: 100% !important; display: block !important; }
       h1 { font-size: 26px !important; }
       .text { font-size: 17px !important; }
     }
   </style>
 </head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#ffffff">
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#f5f5f5">
   
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:20px 0">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:20px 0">
   <tr>
     <td align="center">
       
-      <table class="container" width="650" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #000000;max-width:650px">
+      <table class="container" width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #000000;max-width:600px">
         
         <tr>
           <td style="padding:40px 30px 30px 30px">
@@ -599,20 +608,20 @@ function generateEmailForCustomer(data) {
         </tr>
 
         <tr>
-          <td style="padding:30px 30px;border-top:1px solid #e0e0e0">
+          <td style="padding:30px;border-top:1px solid #e0e0e0">
             <p style="margin:0 0 20px 0;color:#000000;font-size:20px;font-weight:600">Need to Reach Us?</p>
             <p class="text" style="margin:0 0 24px 0;color:#666666;font-size:17px;line-height:1.6">Have questions or want to discuss your piano move? We're here to help!</p>
             
             <table width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td class="button-cell" width="32%" style="padding:0 2% 0 0;vertical-align:top">
-                  <a href="mailto:thenorthpiano@googlemail.com?subject=Piano%20Quote%20-%20${encodeURIComponent(data.fullname)}" class="button" style="display:block;background:#000000;color:#ffffff;padding:18px 20px;text-decoration:none;font-weight:600;font-size:16px;border-radius:6px;text-align:center">Email Us</a>
+              <tr class="button-row">
+                <td width="32%" style="padding:0 1% 0 0;vertical-align:top">
+                  <a href="mailto:thenorthpiano@googlemail.com?subject=Piano%20Quote%20-%20${encodeURIComponent(data.fullname)}" class="button" style="display:block;background:#000000;color:#ffffff;padding:16px 10px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px;text-align:center">Email Us</a>
                 </td>
-                <td class="button-cell" width="32%" style="padding:0 1%;vertical-align:top">
-                  <a href="tel:02034419463" class="button" style="display:block;background:#FF6B6B;color:#ffffff;padding:18px 20px;text-decoration:none;font-weight:600;font-size:16px;border-radius:6px;text-align:center">Call Us</a>
+                <td width="32%" style="padding:0 1%;vertical-align:top">
+                  <a href="tel:02034419463" class="button" style="display:block;background:#FF6B6B;color:#ffffff;padding:16px 10px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px;text-align:center">Call Us</a>
                 </td>
-                <td class="button-cell" width="32%" style="padding:0 0 0 2%;vertical-align:top">
-                  <a href="https://wa.me/447711872434?text=Hi,%20I%20requested%20a%20quote%20for%20moving%20my%20piano" target="_blank" class="button" style="display:block;background:#25D366;color:#ffffff;padding:18px 20px;text-decoration:none;font-weight:600;font-size:16px;border-radius:6px;text-align:center">WhatsApp</a>
+                <td width="32%" style="padding:0 0 0 1%;vertical-align:top">
+                  <a href="https://wa.me/447711872434?text=Hi,%20I%20requested%20a%20quote%20for%20moving%20my%20piano" target="_blank" class="button" style="display:block;background:#25D366;color:#ffffff;padding:16px 10px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px;text-align:center">WhatsApp</a>
                 </td>
               </tr>
             </table>
@@ -620,16 +629,16 @@ function generateEmailForCustomer(data) {
         </tr>
 
         <tr>
-          <td style="padding:30px 30px;text-align:center;border-top:1px solid #e0e0e0">
+          <td style="padding:30px;text-align:center;border-top:1px solid #e0e0e0">
             <p style="margin:0 0 18px 0;color:#000000;font-size:20px;font-weight:600">Save Our Contact</p>
-            <p class="text" style="margin:0 0 24px 0;color:#666666;font-size:17px;line-height:1.6">Add us to your phone contacts for easy access next time you need us.</p>
-            <a href="https://piano-move-team.vercel.app/contact.vcf" download="The-North-London-Piano.vcf" class="button" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 42px;text-decoration:none;font-weight:600;font-size:17px;border-radius:6px">Add to Contacts</a>
+            <p class="text" style="margin:0 0 24px 0;color:#666666;font-size:17px;line-height:1.6">Add us to your phone contacts for easy access.</p>
+            <a href="data:text/vcard;base64,${vcfBase64}" download="The-North-London-Piano.vcf" class="button" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 42px;text-decoration:none;font-weight:600;font-size:17px;border-radius:6px">Add to Contacts</a>
             <p style="margin:20px 0 0 0;color:#999999;font-size:14px">One tap - all our contact info saved!</p>
           </td>
         </tr>
 
         <tr>
-          <td style="padding:30px 30px;border-top:1px solid #e0e0e0">
+          <td style="padding:30px;border-top:1px solid #e0e0e0">
             <p style="margin:0 0 24px 0;color:#000000;font-size:20px;font-weight:600">Why Choose The North London Piano?</p>
             
             <table width="100%" cellpadding="0" cellspacing="0">
@@ -674,7 +683,7 @@ function generateEmailForCustomer(data) {
         </tr>
 
         <tr>
-          <td style="padding:30px 30px;text-align:center;border-top:1px solid #e0e0e0">
+          <td style="padding:30px;text-align:center;border-top:1px solid #e0e0e0">
             <p style="margin:0 0 15px 0;font-size:38px;letter-spacing:4px;line-height:1">
               <span style="color:#FFD700">★</span><span style="color:#FFD700">★</span><span style="color:#FFD700">★</span><span style="color:#FFD700">★</span><span style="color:#FFD700">★</span>
             </p>
@@ -685,7 +694,7 @@ function generateEmailForCustomer(data) {
         </tr>
 
         <tr>
-          <td style="padding:30px 30px;background:#f9f9f9;border-top:2px solid #000000">
+          <td style="padding:30px;background:#f9f9f9;border-top:2px solid #000000">
             <p style="margin:0 0 8px 0;color:#000000;font-size:17px;font-weight:600">Best regards,</p>
             <p style="margin:0 0 24px 0;color:#000000;font-size:17px;font-weight:600">The North London Piano Team</p>
             
