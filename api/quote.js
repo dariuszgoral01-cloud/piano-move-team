@@ -55,6 +55,7 @@ module.exports = async (req, res) => {
 
     const pdfBuffer = await generateJobSheetPDF(data, jobRef);
     
+    // Upload PDF to Supabase
     const pdfFileName = `job-sheets/${jobRef}-${timestamp}.pdf`;
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('piano-quotes')
@@ -75,6 +76,31 @@ module.exports = async (req, res) => {
 
     const pdfPublicUrl = urlData.publicUrl;
     console.log('PDF uploaded to Supabase:', pdfPublicUrl);
+
+    // Generate and upload VCF to Supabase
+    const vcfBuffer = generateVCF();
+    const vcfFileName = `vcf/The-North-London-Piano.vcf`;
+    
+    // Upload VCF (upsert: true so we reuse the same file)
+    const { error: vcfUploadError } = await supabase.storage
+      .from('piano-quotes')
+      .upload(vcfFileName, vcfBuffer, {
+        contentType: 'text/vcard',
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (vcfUploadError && vcfUploadError.message !== 'The resource already exists') {
+      console.error('VCF upload error:', vcfUploadError);
+    }
+
+    // Get public URL for VCF
+    const { data: vcfUrlData } = supabase.storage
+      .from('piano-quotes')
+      .getPublicUrl(vcfFileName);
+
+    const vcfPublicUrl = vcfUrlData.publicUrl;
+    console.log('VCF uploaded to Supabase:', vcfPublicUrl);
 
     const calLink = generateCalendarLink(data);
     const waLink = generateWhatsAppLink(data);
@@ -127,11 +153,12 @@ module.exports = async (req, res) => {
 
     console.log('Business email sent. ID:', emailData?.id);
 
+    // Email TO CUSTOMER with VCF link
     const { data: customerEmailData, error: customerEmailError } = await resend.emails.send({
       from: 'Piano Move Team <noreply@pianomoveteam.co.uk>',
       to: [data.email],
       subject: 'Thank you for your piano moving quote request',
-      html: generateEmailForCustomer(data),
+      html: generateEmailForCustomer(data, vcfPublicUrl),
     });
 
     if (customerEmailError) {
@@ -146,6 +173,7 @@ module.exports = async (req, res) => {
       emailId: emailData?.id,
       customerEmailId: customerEmailData?.id,
       pdfUrl: pdfPublicUrl,
+      vcfUrl: vcfPublicUrl,
       jobRef: jobRef,
       attachments: allAttachments.length
     });
@@ -157,13 +185,31 @@ module.exports = async (req, res) => {
 };
 
 // ==========================================
-// PDF - CLEAN, NO STRIKETHROUGH, ONE PAGE
+// GENERATE VCF FILE
+// ==========================================
+function generateVCF() {
+  const vcfContent = `BEGIN:VCARD
+VERSION:3.0
+FN:The North London Piano
+ORG:The North London Piano
+TEL;TYPE=WORK,VOICE:02034419463
+TEL;TYPE=CELL:07711872434
+EMAIL:thenorthpiano@googlemail.com
+ADR;TYPE=WORK:;;176 Millicent Grove;London;;N13 6HS;UK
+URL:https://www.pianomoveteam.co.uk
+END:VCARD`;
+  
+  return Buffer.from(vcfContent, 'utf-8');
+}
+
+// ==========================================
+// PDF - ONE PAGE ONLY
 // ==========================================
 async function generateJobSheetPDF(data, jobRef) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ 
       size: 'A4', 
-      margin: 30,
+      margin: 25,
       info: {
         Title: `Job Sheet ${jobRef}`,
         Author: 'The North London Piano',
@@ -184,173 +230,173 @@ async function generateJobSheetPDF(data, jobRef) {
     });
 
     // === HEADER ===
-    doc.rect(30, 30, doc.page.width - 60, 70)
+    doc.rect(25, 25, doc.page.width - 50, 60)
        .lineWidth(2)
        .stroke('#000000');
     
-    doc.fontSize(24).fillColor('#000000').font('Helvetica-Bold')
-       .text('JOB SHEET', 45, 45);
-    
-    doc.fontSize(10).fillColor('#666666').font('Helvetica')
-       .text('The North London Piano', 45, 72);
-    
-    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
-       .text(`REF: ${jobRef}`, doc.page.width - 170, 45, { width: 130, align: 'right' });
+    doc.fontSize(22).fillColor('#000000').font('Helvetica-Bold')
+       .text('JOB SHEET', 35, 35);
     
     doc.fontSize(9).fillColor('#666666').font('Helvetica')
-       .text(`Date: ${jobDate}`, doc.page.width - 170, 62, { width: 130, align: 'right' });
-
-    let yPos = 120;
-
-    // === CUSTOMER DETAILS - NO UNDERLINE ===
-    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
-       .text('CUSTOMER DETAILS', 40, yPos);
+       .text('The North London Piano', 35, 60);
     
+    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+       .text(`REF: ${jobRef}`, doc.page.width - 150, 35, { width: 120, align: 'right' });
+    
+    doc.fontSize(8).fillColor('#666666').font('Helvetica')
+       .text(`Date: ${jobDate}`, doc.page.width - 150, 52, { width: 120, align: 'right' });
+
+    let yPos = 100;
+
+    // === CUSTOMER DETAILS ===
+    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+       .text('CUSTOMER DETAILS', 35, yPos);
+    
+    yPos += 12;
+    
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000')
+       .text('Name:', 35, yPos);
+    doc.fontSize(8).font('Helvetica').fillColor('#000000')
+       .text(data.fullname, 85, yPos);
+    yPos += 12;
+    
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000')
+       .text('Phone:', 35, yPos);
+    doc.fontSize(8).font('Helvetica').fillColor('#000000')
+       .text(data.phone, 85, yPos);
+    yPos += 12;
+    
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000')
+       .text('Email:', 35, yPos);
+    doc.fontSize(8).font('Helvetica').fillColor('#000000')
+       .text(data.email, 85, yPos);
+    yPos += 12;
+    
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000')
+       .text('Piano Type:', 35, yPos);
+    doc.fontSize(8).font('Helvetica').fillColor('#000000')
+       .text(data.pianotype || 'Not specified', 85, yPos);
     yPos += 15;
-    
-    doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000')
-       .text('Name:', 40, yPos);
-    doc.fontSize(9).font('Helvetica').fillColor('#000000')
-       .text(data.fullname, 100, yPos);
-    yPos += 14;
-    
-    doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000')
-       .text('Phone:', 40, yPos);
-    doc.fontSize(9).font('Helvetica').fillColor('#000000')
-       .text(data.phone, 100, yPos);
-    yPos += 14;
-    
-    doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000')
-       .text('Email:', 40, yPos);
-    doc.fontSize(9).font('Helvetica').fillColor('#000000')
-       .text(data.email, 100, yPos);
-    yPos += 14;
-    
-    doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000')
-       .text('Piano Type:', 40, yPos);
-    doc.fontSize(9).font('Helvetica').fillColor('#000000')
-       .text(data.pianotype || 'Not specified', 100, yPos);
-    yPos += 20;
 
-    doc.moveTo(40, yPos).lineTo(doc.page.width - 40, yPos).lineWidth(0.5).stroke('#cccccc');
-    yPos += 15;
+    doc.moveTo(35, yPos).lineTo(doc.page.width - 35, yPos).lineWidth(0.5).stroke('#cccccc');
+    yPos += 12;
 
-    // === PICKUP LOCATION - NO UNDERLINE ===
-    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
-       .text('PICKUP LOCATION', 40, yPos);
+    // === PICKUP LOCATION ===
+    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+       .text('PICKUP LOCATION', 35, yPos);
     
-    yPos += 15;
-    const boxHeight = 55;
-    doc.rect(40, yPos, doc.page.width - 80, boxHeight)
+    yPos += 12;
+    const boxHeight = 50;
+    doc.rect(35, yPos, doc.page.width - 70, boxHeight)
        .lineWidth(1.5)
        .stroke('#000000');
     
-    doc.fontSize(8).fillColor('#999999').font('Helvetica-Bold')
-       .text('ADDRESS:', 50, yPos + 10);
+    doc.fontSize(7).fillColor('#999999').font('Helvetica-Bold')
+       .text('ADDRESS:', 45, yPos + 8);
+    doc.fontSize(9).fillColor('#000000').font('Helvetica-Bold')
+       .text(data.pickup_postcode, 45, yPos + 20, { width: 260 });
+    
+    const stepsX = doc.page.width - 110;
+    doc.fontSize(7).fillColor('#999999').font('Helvetica-Bold')
+       .text('STEPS:', stepsX, yPos + 8);
+    doc.fontSize(20).fillColor('#000000').font('Helvetica-Bold')
+       .text(data.pickup_steps.toString(), stepsX, yPos + 18);
+
+    yPos += boxHeight + 12;
+
+    // === DELIVERY LOCATION ===
     doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
-       .text(data.pickup_postcode, 50, yPos + 25, { width: 280 });
+       .text('DELIVERY LOCATION', 35, yPos);
     
-    const stepsX = doc.page.width - 120;
-    doc.fontSize(8).fillColor('#999999').font('Helvetica-Bold')
-       .text('STEPS:', stepsX, yPos + 10);
-    doc.fontSize(22).fillColor('#000000').font('Helvetica-Bold')
-       .text(data.pickup_steps.toString(), stepsX, yPos + 23);
-
-    yPos += boxHeight + 15;
-
-    // === DELIVERY LOCATION - NO UNDERLINE ===
-    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
-       .text('DELIVERY LOCATION', 40, yPos);
-    
-    yPos += 15;
-    doc.rect(40, yPos, doc.page.width - 80, boxHeight)
+    yPos += 12;
+    doc.rect(35, yPos, doc.page.width - 70, boxHeight)
        .lineWidth(1.5)
        .stroke('#000000');
     
-    doc.fontSize(8).fillColor('#999999').font('Helvetica-Bold')
-       .text('ADDRESS:', 50, yPos + 10);
-    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
-       .text(data.delivery_postcode, 50, yPos + 25, { width: 280 });
+    doc.fontSize(7).fillColor('#999999').font('Helvetica-Bold')
+       .text('ADDRESS:', 45, yPos + 8);
+    doc.fontSize(9).fillColor('#000000').font('Helvetica-Bold')
+       .text(data.delivery_postcode, 45, yPos + 20, { width: 260 });
     
-    doc.fontSize(8).fillColor('#999999').font('Helvetica-Bold')
-       .text('STEPS:', stepsX, yPos + 10);
-    doc.fontSize(22).fillColor('#000000').font('Helvetica-Bold')
-       .text(data.delivery_steps.toString(), stepsX, yPos + 23);
+    doc.fontSize(7).fillColor('#999999').font('Helvetica-Bold')
+       .text('STEPS:', stepsX, yPos + 8);
+    doc.fontSize(20).fillColor('#000000').font('Helvetica-Bold')
+       .text(data.delivery_steps.toString(), stepsX, yPos + 18);
 
-    yPos += boxHeight + 15;
+    yPos += boxHeight + 12;
 
-    // === SPECIAL REQUIREMENTS - NO UNDERLINE ===
+    // === SPECIAL REQUIREMENTS ===
     if (data.specialrequirements) {
-      doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
-         .text('SPECIAL REQUIREMENTS', 40, yPos);
+      doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+         .text('SPECIAL REQUIREMENTS', 35, yPos);
       
-      yPos += 15;
+      yPos += 12;
       
-      const textHeight = Math.min(50, doc.heightOfString(data.specialrequirements, {
-        width: doc.page.width - 100,
-        lineGap: 2
-      }) + 20);
+      const textHeight = Math.min(45, doc.heightOfString(data.specialrequirements, {
+        width: doc.page.width - 90,
+        lineGap: 1
+      }) + 18);
       
-      doc.rect(40, yPos, doc.page.width - 80, textHeight)
+      doc.rect(35, yPos, doc.page.width - 70, textHeight)
          .fillAndStroke('#FFFEF0', '#000000');
       
-      doc.fontSize(9).fillColor('#000000').font('Helvetica')
-         .text(data.specialrequirements, 50, yPos + 10, { 
-           width: doc.page.width - 100,
-           lineGap: 2
+      doc.fontSize(8).fillColor('#000000').font('Helvetica')
+         .text(data.specialrequirements, 45, yPos + 8, { 
+           width: doc.page.width - 90,
+           lineGap: 1
          });
       
-      yPos += textHeight + 12;
+      yPos += textHeight + 10;
     }
 
-    // === NOTES / QUOTE - NO UNDERLINE ===
-    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
-       .text('NOTES / QUOTE', 40, yPos);
+    // === NOTES / QUOTE ===
+    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+       .text('NOTES / QUOTE', 35, yPos);
     
-    yPos += 15;
-    doc.rect(40, yPos, doc.page.width - 80, 70)
+    yPos += 12;
+    doc.rect(35, yPos, doc.page.width - 70, 60)
        .lineWidth(1)
        .stroke('#000000');
     
-    doc.fontSize(8).fillColor('#999999').font('Helvetica')
-       .text('Space for notes, quote amount, and additional information...', 50, yPos + 10);
+    doc.fontSize(7).fillColor('#999999').font('Helvetica')
+       .text('Space for notes, quote amount, and additional information...', 45, yPos + 8);
 
-    yPos += 85;
+    yPos += 72;
 
     // === SIGNATURES ===
-    const sigWidth = (doc.page.width - 100) / 2;
+    const sigWidth = (doc.page.width - 90) / 2;
     
-    doc.fontSize(9).fillColor('#000000').font('Helvetica-Bold')
-       .text('CREW SIGNATURE:', 40, yPos);
-    doc.moveTo(40, yPos + 30).lineTo(40 + sigWidth, yPos + 30)
+    doc.fontSize(8).fillColor('#000000').font('Helvetica-Bold')
+       .text('CREW SIGNATURE:', 35, yPos);
+    doc.moveTo(35, yPos + 25).lineTo(35 + sigWidth, yPos + 25)
        .lineWidth(1)
        .stroke('#000000');
     
-    doc.fontSize(9).fillColor('#000000').font('Helvetica-Bold')
-       .text('CUSTOMER SIGNATURE:', doc.page.width / 2 + 10, yPos);
-    doc.moveTo(doc.page.width / 2 + 10, yPos + 30)
-       .lineTo(doc.page.width - 40, yPos + 30)
+    doc.fontSize(8).fillColor('#000000').font('Helvetica-Bold')
+       .text('CUSTOMER SIGNATURE:', doc.page.width / 2 + 5, yPos);
+    doc.moveTo(doc.page.width / 2 + 5, yPos + 25)
+       .lineTo(doc.page.width - 35, yPos + 25)
        .lineWidth(1)
        .stroke('#000000');
 
     // === FOOTER ===
-    const footerY = doc.page.height - 60;
+    const footerY = doc.page.height - 50;
     
-    doc.rect(30, footerY, doc.page.width - 60, 40)
+    doc.rect(25, footerY, doc.page.width - 50, 35)
        .lineWidth(1.5)
        .stroke('#000000');
     
-    doc.fontSize(7).fillColor('#000000').font('Helvetica')
+    doc.fontSize(6).fillColor('#000000').font('Helvetica')
        .text('The North London Piano • 176 Millicent Grove, London N13 6HS', 
-             40, footerY + 10, { 
+             35, footerY + 8, { 
                align: 'center', 
-               width: doc.page.width - 80 
+               width: doc.page.width - 70 
              });
-    doc.fontSize(7).fillColor('#000000').font('Helvetica')
+    doc.fontSize(6).fillColor('#000000').font('Helvetica')
        .text('Tel: 020 3441 9463 • Mobile: 07711 872 434 • Email: thenorthpiano@googlemail.com',
-             40, footerY + 23, { 
+             35, footerY + 20, { 
                align: 'center', 
-               width: doc.page.width - 80 
+               width: doc.page.width - 70 
              });
 
     doc.end();
@@ -409,7 +455,7 @@ function generateEmailForYou(data, calLink, waLink, attachCount, jobRef, pdfUrl)
                   <a href="${calLink}" target="_blank" class="button" style="display:block;background:#4A90E2;color:#ffffff;padding:15px 10px;text-decoration:none;font-weight:600;font-size:14px;border-radius:6px;text-align:center">Add to Calendar</a>
                 </td>
                 <td width="49%" style="padding:0 0 12px 1%;vertical-align:top">
-                  <a href="tel:${data.phone}" class="button" style="display:block;background:#FF6B6B;color:#ffffff;padding:15px 10px;text-decoration:none;font-weight:600;font-size:14px;border-radius:6px;text-align:center">Call Now</a>
+                  <a href="tel:+44${data.phone.replace(/^0/, '').replace(/[^0-9]/g, '')}" class="button" style="display:block;background:#FF6B6B;color:#ffffff;padding:15px 10px;text-decoration:none;font-weight:600;font-size:14px;border-radius:6px;text-align:center">Call Now</a>
                 </td>
               </tr>
               <tr class="button-row">
@@ -533,22 +579,9 @@ function generateWhatsAppLink(data) {
 }
 
 // ==========================================
-// EMAIL FOR CUSTOMER
+// EMAIL FOR CUSTOMER - WITH VCF URL
 // ==========================================
-function generateEmailForCustomer(data) {
-  const vcfContent = `BEGIN:VCARD
-VERSION:3.0
-FN:The North London Piano
-ORG:The North London Piano
-TEL;TYPE=WORK,VOICE:02034419463
-TEL;TYPE=CELL:07711872434
-EMAIL:thenorthpiano@googlemail.com
-ADR;TYPE=WORK:;;176 Millicent Grove;London;;N13 6HS;UK
-URL:https://www.pianomoveteam.co.uk
-END:VCARD`;
-
-  const vcfBase64 = Buffer.from(vcfContent).toString('base64');
-
+function generateEmailForCustomer(data, vcfUrl) {
   return `
 <!DOCTYPE html>
 <html>
@@ -562,7 +595,6 @@ END:VCARD`;
       .button { width: 100% !important; display: block !important; }
       h1 { font-size: 26px !important; }
       .text { font-size: 17px !important; }
-    }
   </style>
 </head>
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#f5f5f5">
@@ -631,8 +663,8 @@ END:VCARD`;
         <tr>
           <td style="padding:30px;text-align:center;border-top:1px solid #e0e0e0">
             <p style="margin:0 0 18px 0;color:#000000;font-size:20px;font-weight:600">Save Our Contact</p>
-            <p class="text" style="margin:0 0 24px 0;color:#666666;font-size:17px;line-height:1.6">Add us to your phone contacts for easy access.</p>
-            <a href="data:text/vcard;base64,${vcfBase64}" download="The-North-London-Piano.vcf" class="button" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 42px;text-decoration:none;font-weight:600;font-size:17px;border-radius:6px">Add to Contacts</a>
+            <p class="text" style="margin:0 0 24px 0;color:#666666;font-size:17px;line-height:1.6">Add us to your phone contacts for easy access next time you need us.</p>
+            <a href="${vcfUrl}" download="The-North-London-Piano.vcf" class="button" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 42px;text-decoration:none;font-weight:600;font-size:17px;border-radius:6px">Add to Contacts</a>
             <p style="margin:20px 0 0 0;color:#999999;font-size:14px">One tap - all our contact info saved!</p>
           </td>
         </tr>
