@@ -24,7 +24,6 @@ module.exports = async (req, res) => {
   try {
     const data = req.body;
 
-    // Validation
     if (!data.fullname || !data.email || !data.phone) {
       return res.status(400).json({ 
         error: 'Missing required fields',
@@ -37,7 +36,6 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
-    // Process customer attachments
     const customerAttachments = [];
     if (data.attachments && Array.isArray(data.attachments)) {
       for (const file of data.attachments) {
@@ -50,16 +48,13 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Generate job reference
     const jobRef = `PMT-${Date.now().toString().slice(-6)}`;
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
     console.log(`Quote from ${data.fullname} - Generating PDF...`);
 
-    // Generate PDF Job Sheet
     const pdfBuffer = await generateJobSheetPDF(data, jobRef);
     
-    // Upload PDF to Supabase Storage
     const pdfFileName = `job-sheets/${jobRef}-${timestamp}.pdf`;
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('piano-quotes')
@@ -74,7 +69,6 @@ module.exports = async (req, res) => {
       throw new Error('Failed to upload PDF to storage');
     }
 
-    // Get public URL for the PDF
     const { data: urlData } = supabase.storage
       .from('piano-quotes')
       .getPublicUrl(pdfFileName);
@@ -82,13 +76,11 @@ module.exports = async (req, res) => {
     const pdfPublicUrl = urlData.publicUrl;
     console.log('PDF uploaded to Supabase:', pdfPublicUrl);
 
-    // Links
     const calLink = generateCalendarLink(data);
     const waLink = generateWhatsAppLink(data);
     const slug = data.fullname.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
     const threadId = `<quote-${slug}@pianomoveteam.co.uk>`;
 
-    // Combine attachments: customer photos + PDF
     const allAttachments = [
       ...customerAttachments,
       {
@@ -97,7 +89,6 @@ module.exports = async (req, res) => {
       }
     ];
 
-    // Save quote to Supabase Database
     await supabase.from('quotes').insert({
       job_ref: jobRef,
       customer_name: data.fullname,
@@ -114,7 +105,6 @@ module.exports = async (req, res) => {
       created_at: new Date().toISOString()
     });
 
-    // Email TO YOU with PDF link button
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: 'Piano Quote <quotes@pianomoveteam.co.uk>',
       to: ['thenorthpiano@googlemail.com'],
@@ -137,7 +127,6 @@ module.exports = async (req, res) => {
 
     console.log('Email sent with PDF link. ID:', emailData?.id);
 
-    // Email TO CUSTOMER
     await resend.emails.send({
       from: 'Piano Move Team <noreply@pianomoveteam.co.uk>',
       to: [data.email],
@@ -163,13 +152,13 @@ module.exports = async (req, res) => {
 };
 
 // ==========================================
-// PDF JOB SHEET GENERATOR - INK-SAVING VERSION
+// PDF JOB SHEET GENERATOR - SINGLE PAGE, CLEAN
 // ==========================================
 async function generateJobSheetPDF(data, jobRef) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ 
       size: 'A4', 
-      margin: 40,
+      margin: 30,
       info: {
         Title: `Job Sheet ${jobRef}`,
         Author: 'The North London Piano',
@@ -189,51 +178,34 @@ async function generateJobSheetPDF(data, jobRef) {
       year: 'numeric' 
     });
 
-    // === ELEGANT HEADER WITH BORDER (saves ink!) ===
-    // Outer border
-    doc.rect(30, 30, doc.page.width - 60, 80)
-       .lineWidth(3)
+    // === HEADER ===
+    doc.rect(30, 30, doc.page.width - 60, 70)
+       .lineWidth(2)
        .stroke('#000000');
     
-    // Inner decorative line
-    doc.rect(35, 35, doc.page.width - 70, 70)
-       .lineWidth(1)
-       .stroke('#000000');
-
-    // Title
-    doc.fontSize(28).fillColor('#000000').font('Helvetica-Bold')
-       .text('JOB SHEET', 50, 50, { align: 'left' });
+    doc.fontSize(24).fillColor('#000000').font('Helvetica-Bold')
+       .text('JOB SHEET', 45, 45);
     
-    // Company name
-    doc.fontSize(11).fillColor('#000000').font('Helvetica')
-       .text('The North London Piano', 50, 78);
+    doc.fontSize(10).fillColor('#666666').font('Helvetica')
+       .text('The North London Piano', 45, 72);
     
-    // Job Reference - right aligned
-    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
-       .text(`REF: ${jobRef}`, doc.page.width - 180, 50, { 
-         align: 'right', 
-         width: 150 
-       });
+    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
+       .text(`REF: ${jobRef}`, doc.page.width - 160, 45);
     
-    // Date - right aligned
     doc.fontSize(9).fillColor('#666666').font('Helvetica')
-       .text(`Date: ${jobDate}`, doc.page.width - 180, 68, { 
-         align: 'right', 
-         width: 150 
-       });
+       .text(`Date: ${jobDate}`, doc.page.width - 160, 62);
 
-    let yPos = 130;
+    let yPos = 120;
 
     // === CUSTOMER DETAILS ===
-    doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
+    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
        .text('CUSTOMER DETAILS', 40, yPos);
     
-    yPos += 5;
-    // Underline
-    doc.moveTo(40, yPos).lineTo(200, yPos).lineWidth(2).stroke('#000000');
+    yPos += 3;
+    doc.moveTo(40, yPos).lineTo(180, yPos).lineWidth(1.5).stroke('#000000');
     
-    yPos += 15;
-    doc.fontSize(10).font('Helvetica');
+    yPos += 12;
+    doc.fontSize(9).font('Helvetica');
     
     const customerInfo = [
       ['Name:', data.fullname],
@@ -243,142 +215,142 @@ async function generateJobSheetPDF(data, jobRef) {
     ];
 
     customerInfo.forEach(([label, value]) => {
-      doc.font('Helvetica-Bold').text(label, 40, yPos, { width: 120, continued: true })
-         .font('Helvetica').text(value);
-      yPos += 18;
+      doc.font('Helvetica-Bold').fillColor('#000000').text(label, 40, yPos, { width: 90, continued: true })
+         .font('Helvetica').fillColor('#000000').text(value);
+      yPos += 14;
     });
 
-    yPos += 10;
-    doc.moveTo(40, yPos).lineTo(doc.page.width - 40, yPos).lineWidth(1).stroke('#cccccc');
-    yPos += 20;
+    yPos += 8;
+    doc.moveTo(40, yPos).lineTo(doc.page.width - 40, yPos).lineWidth(0.5).stroke('#cccccc');
+    yPos += 15;
 
-    // === PICKUP LOCATION ===
-    doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
+    // === PICKUP LOCATION (2-COLUMN) ===
+    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
        .text('PICKUP LOCATION', 40, yPos);
     
-    yPos += 5;
-    doc.moveTo(40, yPos).lineTo(220, yPos).lineWidth(2).stroke('#000000');
+    yPos += 3;
+    doc.moveTo(40, yPos).lineTo(200, yPos).lineWidth(1.5).stroke('#000000');
     
-    yPos += 20;
-    // Light border instead of filled box
-    doc.rect(40, yPos, doc.page.width - 80, 80)
-       .lineWidth(2)
+    yPos += 15;
+    doc.rect(40, yPos, doc.page.width - 80, 55)
+       .lineWidth(1.5)
        .stroke('#000000');
     
-    doc.fontSize(9).fillColor('#666666').font('Helvetica-Bold')
-       .text('ADDRESS:', 50, yPos + 12);
-    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
-       .text(data.pickup_postcode, 50, yPos + 27);
+    // Left column - Address
+    doc.fontSize(8).fillColor('#999999').font('Helvetica-Bold')
+       .text('ADDRESS:', 50, yPos + 10);
+    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+       .text(data.pickup_postcode, 50, yPos + 25, { width: 280 });
     
-    doc.fontSize(9).fillColor('#666666').font('Helvetica-Bold')
-       .text('STEPS:', 50, yPos + 47);
-    doc.fontSize(18).fillColor('#000000').font('Helvetica-Bold')
-       .text(data.pickup_steps.toString(), 50, yPos + 60);
+    // Right column - Steps
+    const stepsX = doc.page.width - 150;
+    doc.fontSize(8).fillColor('#999999').font('Helvetica-Bold')
+       .text('STEPS:', stepsX, yPos + 10);
+    doc.fontSize(22).fillColor('#000000').font('Helvetica-Bold')
+       .text(data.pickup_steps.toString(), stepsX, yPos + 23);
 
-    yPos += 95;
+    yPos += 70;
 
-    // === DELIVERY LOCATION ===
-    doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
+    // === DELIVERY LOCATION (2-COLUMN) ===
+    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
        .text('DELIVERY LOCATION', 40, yPos);
     
-    yPos += 5;
-    doc.moveTo(40, yPos).lineTo(240, yPos).lineWidth(2).stroke('#000000');
+    yPos += 3;
+    doc.moveTo(40, yPos).lineTo(220, yPos).lineWidth(1.5).stroke('#000000');
     
-    yPos += 20;
-    doc.rect(40, yPos, doc.page.width - 80, 80)
-       .lineWidth(2)
+    yPos += 15;
+    doc.rect(40, yPos, doc.page.width - 80, 55)
+       .lineWidth(1.5)
        .stroke('#000000');
     
-    doc.fontSize(9).fillColor('#666666').font('Helvetica-Bold')
-       .text('ADDRESS:', 50, yPos + 12);
-    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
-       .text(data.delivery_postcode, 50, yPos + 27);
+    doc.fontSize(8).fillColor('#999999').font('Helvetica-Bold')
+       .text('ADDRESS:', 50, yPos + 10);
+    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+       .text(data.delivery_postcode, 50, yPos + 25, { width: 280 });
     
-    doc.fontSize(9).fillColor('#666666').font('Helvetica-Bold')
-       .text('STEPS:', 50, yPos + 47);
-    doc.fontSize(18).fillColor('#000000').font('Helvetica-Bold')
-       .text(data.delivery_steps.toString(), 50, yPos + 60);
+    doc.fontSize(8).fillColor('#999999').font('Helvetica-Bold')
+       .text('STEPS:', stepsX, yPos + 10);
+    doc.fontSize(22).fillColor('#000000').font('Helvetica-Bold')
+       .text(data.delivery_steps.toString(), stepsX, yPos + 23);
 
-    yPos += 95;
+    yPos += 70;
 
     // === SPECIAL REQUIREMENTS ===
     if (data.specialrequirements) {
-      doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
+      doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
          .text('SPECIAL REQUIREMENTS', 40, yPos);
       
-      yPos += 5;
-      doc.moveTo(40, yPos).lineTo(260, yPos).lineWidth(2).stroke('#000000');
+      yPos += 3;
+      doc.moveTo(40, yPos).lineTo(240, yPos).lineWidth(1.5).stroke('#000000');
       
-      yPos += 20;
+      yPos += 15;
       
-      const textHeight = Math.max(80, doc.heightOfString(data.specialrequirements, {
+      const textHeight = Math.min(60, doc.heightOfString(data.specialrequirements, {
         width: doc.page.width - 100,
-        lineGap: 4
-      }) + 24);
+        lineGap: 2
+      }) + 20);
       
-      // Yellow background with border (lighter on ink than filled box)
       doc.rect(40, yPos, doc.page.width - 80, textHeight)
          .fillAndStroke('#FFFEF0', '#000000');
       
-      doc.fontSize(10).fillColor('#000000').font('Helvetica')
-         .text(data.specialrequirements, 50, yPos + 12, { 
+      doc.fontSize(9).fillColor('#000000').font('Helvetica')
+         .text(data.specialrequirements, 50, yPos + 10, { 
            width: doc.page.width - 100,
-           lineGap: 4
+           lineGap: 2
          });
       
-      yPos += textHeight + 15;
+      yPos += textHeight + 12;
     }
 
     // === NOTES / QUOTE SECTION ===
-    doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
+    doc.fontSize(11).fillColor('#000000').font('Helvetica-Bold')
        .text('NOTES / QUOTE', 40, yPos);
     
-    yPos += 5;
-    doc.moveTo(40, yPos).lineTo(200, yPos).lineWidth(2).stroke('#000000');
+    yPos += 3;
+    doc.moveTo(40, yPos).lineTo(180, yPos).lineWidth(1.5).stroke('#000000');
     
-    yPos += 20;
-    doc.rect(40, yPos, doc.page.width - 80, 100)
+    yPos += 15;
+    doc.rect(40, yPos, doc.page.width - 80, 80)
        .lineWidth(1)
        .stroke('#000000');
     
-    doc.fontSize(9).fillColor('#999999').font('Helvetica')
-       .text('Space for notes, quote amount, and additional information...', 50, yPos + 12);
+    doc.fontSize(8).fillColor('#999999').font('Helvetica')
+       .text('Space for notes, quote amount, and additional information...', 50, yPos + 10);
 
-    yPos += 115;
+    yPos += 95;
 
     // === SIGNATURES ===
     const sigWidth = (doc.page.width - 100) / 2;
     
-    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+    doc.fontSize(9).fillColor('#000000').font('Helvetica-Bold')
        .text('CREW SIGNATURE:', 40, yPos);
-    doc.moveTo(40, yPos + 50).lineTo(40 + sigWidth, yPos + 50)
+    doc.moveTo(40, yPos + 40).lineTo(40 + sigWidth, yPos + 40)
        .lineWidth(1)
        .stroke('#000000');
     
-    doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
+    doc.fontSize(9).fillColor('#000000').font('Helvetica-Bold')
        .text('CUSTOMER SIGNATURE:', doc.page.width / 2 + 10, yPos);
-    doc.moveTo(doc.page.width / 2 + 10, yPos + 50)
-       .lineTo(doc.page.width - 40, yPos + 50)
+    doc.moveTo(doc.page.width / 2 + 10, yPos + 40)
+       .lineTo(doc.page.width - 40, yPos + 40)
        .lineWidth(1)
        .stroke('#000000');
 
-    // === FOOTER WITH BORDER (no black bar!) ===
-    const footerY = doc.page.height - 70;
+    // === FOOTER ===
+    const footerY = doc.page.height - 60;
     
-    // Decorative border instead of filled rectangle
-    doc.rect(30, footerY, doc.page.width - 60, 50)
-       .lineWidth(2)
+    doc.rect(30, footerY, doc.page.width - 60, 40)
+       .lineWidth(1.5)
        .stroke('#000000');
     
-    doc.fontSize(8).fillColor('#000000').font('Helvetica')
+    doc.fontSize(7).fillColor('#000000').font('Helvetica')
        .text('The North London Piano • 176 Millicent Grove, London N13 6HS', 
-             40, footerY + 12, { 
+             40, footerY + 10, { 
                align: 'center', 
                width: doc.page.width - 80 
              });
-    doc.fontSize(8).fillColor('#000000').font('Helvetica')
+    doc.fontSize(7).fillColor('#000000').font('Helvetica')
        .text('Tel: 020 3441 9463 • Mobile: 07711 872 434 • Email: thenorthpiano@googlemail.com',
-             40, footerY + 28, { 
+             40, footerY + 23, { 
                align: 'center', 
                width: doc.page.width - 80 
              });
@@ -388,7 +360,7 @@ async function generateJobSheetPDF(data, jobRef) {
 }
 
 // ==========================================
-// EMAIL FOR YOU (BUSINESS)
+// EMAIL FOR YOU (BUSINESS) - 4 EQUAL BUTTONS
 // ==========================================
 function generateEmailForYou(data, calLink, waLink, attachCount, jobRef, pdfUrl) {
   return `
@@ -400,22 +372,8 @@ function generateEmailForYou(data, calLink, waLink, attachCount, jobRef, pdfUrl)
   <style>
     @media only screen and (max-width: 600px) {
       .container { width: 100% !important; }
-      .button { padding: 14px 24px !important; font-size: 15px !important; }
+      .button { width: 100% !important; display: block !important; margin: 0 0 12px 0 !important; }
       h1 { font-size: 22px !important; }
-      .pdf-section table { display: block !important; }
-      .pdf-section td { 
-        display: block !important; 
-        width: 100% !important; 
-        text-align: center !important; 
-        padding: 10px 0 !important; 
-      }
-      .pdf-button {
-        padding: 18px 40px !important;
-        font-size: 18px !important;
-        width: 90% !important;
-        display: block !important;
-        margin: 0 auto !important;
-      }
     }
   </style>
 </head>
@@ -434,22 +392,6 @@ function generateEmailForYou(data, calLink, waLink, attachCount, jobRef, pdfUrl)
           </td>
         </tr>
 
-        <tr>
-          <td class="pdf-section" style="padding:25px 30px;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border-bottom:2px solid #000000">
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td style="vertical-align:middle;width:65%">
-                  <p style="margin:0 0 5px 0;color:#ffffff;font-size:19px;font-weight:700">Job Sheet PDF Ready</p>
-                  <p style="margin:0;color:#ffffff;font-size:14px;opacity:0.95"><strong>${jobRef}.pdf</strong> - Ready to print</p>
-                </td>
-                <td style="vertical-align:middle;text-align:right;width:35%">
-                  <a href="${pdfUrl}" target="_blank" class="pdf-button" style="display:inline-block;background:#ffffff;color:#667eea;padding:14px 28px;text-decoration:none;font-weight:700;font-size:16px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1)">Print Job Sheet</a>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-
         ${attachCount > 0 ? `
         <tr>
           <td style="padding:20px 30px;background:#f9f9f9;border-bottom:1px solid #e0e0e0">
@@ -460,16 +402,26 @@ function generateEmailForYou(data, calLink, waLink, attachCount, jobRef, pdfUrl)
 
         <tr>
           <td style="padding:30px 30px;border-bottom:1px solid #e0e0e0">
-            <p style="margin:0 0 18px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase">Quick Actions</p>
-            <p style="margin-bottom:14px">
-              <a href="${calLink}" target="_blank" class="button" style="display:inline-block;background:#000000;color:#ffffff;padding:14px 28px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px">Add to Calendar</a>
-            </p>
-            <p style="margin-bottom:14px">
-              <a href="tel:${data.phone}" class="button" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:14px 28px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px">Call ${data.phone}</a>
-            </p>
-            <p style="margin-bottom:0">
-              <a href="${waLink}" target="_blank" class="button" style="display:inline-block;background:#25D366;color:#ffffff;padding:14px 28px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px">WhatsApp</a>
-            </p>
+            <p style="margin:0 0 20px 0;color:#000000;font-size:16px;font-weight:600;text-transform:uppercase">Quick Actions</p>
+            
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td width="48%" style="padding:0 2% 15px 0">
+                  <a href="${calLink}" target="_blank" class="button" style="display:block;background:#4A90E2;color:#ffffff;padding:16px 20px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px;text-align:center">Add to Calendar</a>
+                </td>
+                <td width="48%" style="padding:0 0 15px 2%">
+                  <a href="tel:${data.phone}" class="button" style="display:block;background:#FF6B6B;color:#ffffff;padding:16px 20px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px;text-align:center">Call Now</a>
+                </td>
+              </tr>
+              <tr>
+                <td width="48%" style="padding:0 2% 0 0">
+                  <a href="${waLink}" target="_blank" class="button" style="display:block;background:#25D366;color:#ffffff;padding:16px 20px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px;text-align:center">WhatsApp</a>
+                </td>
+                <td width="48%" style="padding:0 0 0 2%">
+                  <a href="${pdfUrl}" target="_blank" class="button" style="display:block;background:#9B59B6;color:#ffffff;padding:16px 20px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px;text-align:center">Print Job Sheet</a>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
 
@@ -585,7 +537,7 @@ function generateWhatsAppLink(data) {
 }
 
 // ==========================================
-// EMAIL FOR CUSTOMER (AUTO-RESPONSE)
+// EMAIL FOR CUSTOMER - 3 EQUAL BUTTONS IN ROW
 // ==========================================
 function generateEmailForCustomer(data) {
   return `
@@ -597,7 +549,8 @@ function generateEmailForCustomer(data) {
   <style>
     @media only screen and (max-width: 600px) {
       .container { width: 100% !important; }
-      .button { padding: 18px 32px !important; font-size: 17px !important; display: block !important; margin-bottom: 12px !important; }
+      .button-cell { width: 100% !important; display: block !important; padding: 0 0 12px 0 !important; }
+      .button { width: 100% !important; display: block !important; }
       h1 { font-size: 26px !important; }
       .text { font-size: 17px !important; }
     }
@@ -611,7 +564,8 @@ function generateEmailForCustomer(data) {
       
       <table class="container" width="650" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #000000;max-width:650px">
         
-        <tr> <td style="padding:40px 30px 30px 30px">
+        <tr>
+          <td style="padding:40px 30px 30px 30px">
             <h1 style="margin:0 0 18px 0;color:#000000;font-size:30px;font-weight:700">Hi ${data.fullname},</h1>
             <p class="text" style="margin:0 0 12px 0;color:#333333;font-size:18px;line-height:1.6">Thank you for requesting a piano moving quote.</p>
             <p class="text" style="margin:0;color:#333333;font-size:18px;line-height:1.6">We've received your details and <strong>will contact you shortly</strong> with a personalized quote.</p>
@@ -651,18 +605,14 @@ function generateEmailForCustomer(data) {
             
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
-                <td style="padding-bottom:14px">
-                  <a href="mailto:thenorthpiano@googlemail.com?subject=Piano%20Quote%20-%20${encodeURIComponent(data.fullname)}" class="button" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 32px;text-decoration:none;font-weight:600;font-size:16px;border-radius:6px">Email Us</a>
+                <td class="button-cell" width="32%" style="padding:0 2% 0 0;vertical-align:top">
+                  <a href="mailto:thenorthpiano@googlemail.com?subject=Piano%20Quote%20-%20${encodeURIComponent(data.fullname)}" class="button" style="display:block;background:#000000;color:#ffffff;padding:18px 20px;text-decoration:none;font-weight:600;font-size:16px;border-radius:6px;text-align:center">Email Us</a>
                 </td>
-              </tr>
-              <tr>
-                <td style="padding-bottom:14px">
-                  <a href="https://wa.me/447711872434?text=Hi,%20I%20requested%20a%20quote%20for%20moving%20my%20piano" target="_blank" class="button" style="display:inline-block;background:#25D366;color:#ffffff;padding:18px 32px;text-decoration:none;font-weight:600;font-size:16px;border-radius:6px">WhatsApp</a>
+                <td class="button-cell" width="32%" style="padding:0 1%;vertical-align:top">
+                  <a href="tel:02034419463" class="button" style="display:block;background:#FF6B6B;color:#ffffff;padding:18px 20px;text-decoration:none;font-weight:600;font-size:16px;border-radius:6px;text-align:center">Call Us</a>
                 </td>
-              </tr>
-              <tr>
-                <td>
-                  <a href="tel:02034419463" class="button" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:16px 32px;text-decoration:none;font-weight:600;font-size:16px;border-radius:6px">Call Us</a>
+                <td class="button-cell" width="32%" style="padding:0 0 0 2%;vertical-align:top">
+                  <a href="https://wa.me/447711872434?text=Hi,%20I%20requested%20a%20quote%20for%20moving%20my%20piano" target="_blank" class="button" style="display:block;background:#25D366;color:#ffffff;padding:18px 20px;text-decoration:none;font-weight:600;font-size:16px;border-radius:6px;text-align:center">WhatsApp</a>
                 </td>
               </tr>
             </table>
