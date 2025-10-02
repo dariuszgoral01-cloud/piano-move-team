@@ -702,7 +702,13 @@ function generateEmailForCustomer(data, vcfUrl) {
             </p>
             <p style="margin:0 0 20px 0;color:#000000;font-size:19px;font-weight:600">Trusted by Hundreds of Satisfied Customers</p>
             <p class="text" style="margin:0 0 24px 0;color:#666666;font-size:17px;line-height:1.6">Don't just take our word for it - see what our happy customers say about our professional piano moving services.</p>
-            <a href="https://www.google.co.uk/search?ibp=gwp;0,7&q=Piano+Service+North+London&ludocid=14902599609672896939&lsig=AB86z5XuluRlZf_c27ORk6gwjkIv&gfe_rd=mr&pli=1#lpg=cid:CgIgAQ%3D%3D" target="_blank" class="button" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:16px 36px;text-decoration:none;font-weight:600;font-size:16px;border-radius:6px">Read Our Google Reviews</a>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center">
+                  <a href="https://www.google.co.uk/search?ibp=gwp;0,7&q=Piano+Service+North+London&ludocid=14902599609672896939&lsig=AB86z5XuluRlZf_c27ORk6gwjkIv&gfe_rd=mr&pli=1#lpg=cid:CgIgAQ%3D%3D" target="_blank" class="button" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:16px 28px;text-decoration:none;font-weight:600;font-size:15px;border-radius:6px;max-width:280px">Read Our Google Reviews</a>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
 
