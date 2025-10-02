@@ -55,7 +55,6 @@ module.exports = async (req, res) => {
 
     const pdfBuffer = await generateJobSheetPDF(data, jobRef);
     
-    // Upload PDF to Supabase
     const pdfFileName = `job-sheets/${jobRef}-${timestamp}.pdf`;
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('piano-quotes')
@@ -77,11 +76,9 @@ module.exports = async (req, res) => {
     const pdfPublicUrl = urlData.publicUrl;
     console.log('PDF uploaded to Supabase:', pdfPublicUrl);
 
-    // Generate and upload VCF to Supabase
     const vcfBuffer = generateVCF();
     const vcfFileName = `vcf/The-North-London-Piano.vcf`;
     
-    // Upload VCF (upsert: true so we reuse the same file)
     const { error: vcfUploadError } = await supabase.storage
       .from('piano-quotes')
       .upload(vcfFileName, vcfBuffer, {
@@ -94,7 +91,6 @@ module.exports = async (req, res) => {
       console.error('VCF upload error:', vcfUploadError);
     }
 
-    // Get public URL for VCF
     const { data: vcfUrlData } = supabase.storage
       .from('piano-quotes')
       .getPublicUrl(vcfFileName);
@@ -153,7 +149,6 @@ module.exports = async (req, res) => {
 
     console.log('Business email sent. ID:', emailData?.id);
 
-    // Email TO CUSTOMER with VCF link
     const { data: customerEmailData, error: customerEmailError } = await resend.emails.send({
       from: 'Piano Move Team <noreply@pianomoveteam.co.uk>',
       to: [data.email],
@@ -184,9 +179,6 @@ module.exports = async (req, res) => {
   }
 };
 
-// ==========================================
-// GENERATE VCF FILE
-// ==========================================
 function generateVCF() {
   const vcfContent = `BEGIN:VCARD
 VERSION:3.0
@@ -202,9 +194,6 @@ END:VCARD`;
   return Buffer.from(vcfContent, 'utf-8');
 }
 
-// ==========================================
-// PDF - ONE PAGE ONLY
-// ==========================================
 async function generateJobSheetPDF(data, jobRef) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ 
@@ -229,7 +218,6 @@ async function generateJobSheetPDF(data, jobRef) {
       year: 'numeric' 
     });
 
-    // === HEADER ===
     doc.rect(25, 25, doc.page.width - 50, 60)
        .lineWidth(2)
        .stroke('#000000');
@@ -248,7 +236,6 @@ async function generateJobSheetPDF(data, jobRef) {
 
     let yPos = 100;
 
-    // === CUSTOMER DETAILS ===
     doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
        .text('CUSTOMER DETAILS', 35, yPos);
     
@@ -281,7 +268,6 @@ async function generateJobSheetPDF(data, jobRef) {
     doc.moveTo(35, yPos).lineTo(doc.page.width - 35, yPos).lineWidth(0.5).stroke('#cccccc');
     yPos += 15;
 
-    // === PICKUP LOCATION ===
     doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
        .text('PICKUP LOCATION', 35, yPos);
     
@@ -304,7 +290,6 @@ async function generateJobSheetPDF(data, jobRef) {
 
     yPos += boxHeight + 15;
 
-    // === DELIVERY LOCATION ===
     doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
        .text('DELIVERY LOCATION', 35, yPos);
     
@@ -325,7 +310,6 @@ async function generateJobSheetPDF(data, jobRef) {
 
     yPos += boxHeight + 15;
 
-    // === SPECIAL REQUIREMENTS ===
     if (data.specialrequirements) {
       doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
          .text('SPECIAL REQUIREMENTS', 35, yPos);
@@ -349,13 +333,11 @@ async function generateJobSheetPDF(data, jobRef) {
       yPos += textHeight + 12;
     }
 
-    // === NOTES / QUOTE ===
     doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
        .text('NOTES / QUOTE', 35, yPos);
     
     yPos += 15;
     
-    // Zmniejszamy wysokość ramki notes, aby zmieścić wszystko
     const notesHeight = 45;
     doc.rect(35, yPos, doc.page.width - 70, notesHeight)
        .lineWidth(1)
@@ -366,7 +348,6 @@ async function generateJobSheetPDF(data, jobRef) {
 
     yPos += notesHeight + 15;
 
-    // === SIGNATURES ===
     const sigWidth = (doc.page.width - 60) / 2;
     
     doc.fontSize(12).fillColor('#000000').font('Helvetica-Bold')
@@ -382,12 +363,8 @@ async function generateJobSheetPDF(data, jobRef) {
        .lineWidth(1)
        .stroke('#000000');
 
-    yPos += 38; // Zmniejszone z 40 do 35
+    const footerY = doc.page.height - 60;
 
-    // === FOOTER - PRZESUWAMY DO DOŁU STRONY ===
-    const footerY = doc.page.height - 60; // Umieszczamy 40 punktów od dołu
-
-    // Usuwamy ramkę i po prostu wyświetlamy tekst
     doc.fontSize(10).fillColor('#000000').font('Helvetica-Bold')
        .text('The North London Piano • 176 Millicent Grove, London N13 6HS', 
              35, footerY, { 
@@ -406,9 +383,6 @@ async function generateJobSheetPDF(data, jobRef) {
   });
 }
 
-// ==========================================
-// EMAIL FOR BUSINESS
-// ==========================================
 function generateEmailForYou(data, calLink, waLink, attachCount, jobRef, pdfUrl) {
   return `
 <!DOCTYPE html>
@@ -581,9 +555,6 @@ function generateWhatsAppLink(data) {
   return `https://wa.me/${data.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hi ' + data.fullname + ', thank you for your piano moving quote request. I would like to discuss the details with you.')}`;
 }
 
-// ==========================================
-// EMAIL FOR CUSTOMER - WITH VCF URL
-// ==========================================
 function generateEmailForCustomer(data, vcfUrl) {
   return `
 <!DOCTYPE html>
@@ -598,6 +569,7 @@ function generateEmailForCustomer(data, vcfUrl) {
       .button { width: 100% !important; display: block !important; }
       h1 { font-size: 26px !important; }
       .text { font-size: 17px !important; }
+    }
   </style>
 </head>
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#f5f5f5">
@@ -667,7 +639,13 @@ function generateEmailForCustomer(data, vcfUrl) {
           <td style="padding:30px;text-align:center;border-top:1px solid #e0e0e0">
             <p style="margin:0 0 18px 0;color:#000000;font-size:20px;font-weight:600">Save Our Contact</p>
             <p class="text" style="margin:0 0 24px 0;color:#666666;font-size:17px;line-height:1.6">Add us to your phone contacts for easy access next time you need us.</p>
-            <a href="${vcfUrl}" download="The-North-London-Piano.vcf" class="button" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 42px;text-decoration:none;font-weight:600;font-size:17px;border-radius:6px">Add to Contacts</a>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center">
+                  <a href="${vcfUrl}" download="The-North-London-Piano.vcf" class="button" style="display:inline-block;background:#000000;color:#ffffff;padding:18px 32px;text-decoration:none;font-weight:600;font-size:16px;border-radius:6px;max-width:280px">Add to Contacts</a>
+                </td>
+              </tr>
+            </table>
             <p style="margin:20px 0 0 0;color:#999999;font-size:14px">One tap - all our contact info saved!</p>
           </td>
         </tr>
@@ -724,7 +702,7 @@ function generateEmailForCustomer(data, vcfUrl) {
             </p>
             <p style="margin:0 0 20px 0;color:#000000;font-size:19px;font-weight:600">Trusted by Hundreds of Satisfied Customers</p>
             <p class="text" style="margin:0 0 24px 0;color:#666666;font-size:17px;line-height:1.6">Don't just take our word for it - see what our happy customers say about our professional piano moving services.</p>
-            <a href="https://www.google.com/search?q=piano+transport+london+the+north+london+piano" target="_blank" class="button" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:16px 36px;text-decoration:none;font-weight:600;font-size:16px;border-radius:6px">Read Our Google Reviews</a>
+            <a href="https://www.google.co.uk/search?ibp=gwp;0,7&q=Piano+Service+North+London&ludocid=14902599609672896939&lsig=AB86z5XuluRlZf_c27ORk6gwjkIv&gfe_rd=mr&pli=1#lpg=cid:CgIgAQ%3D%3D" target="_blank" class="button" style="display:inline-block;background:#ffffff;color:#000000;border:2px solid #000000;padding:16px 36px;text-decoration:none;font-weight:600;font-size:16px;border-radius:6px">Read Our Google Reviews</a>
           </td>
         </tr>
 
@@ -752,4 +730,3 @@ function generateEmailForCustomer(data, vcfUrl) {
 </html>
   `;
 }
-
